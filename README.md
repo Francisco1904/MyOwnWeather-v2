@@ -1,10 +1,26 @@
 # MyOwnWeather v2 🌤️
 
+![Status](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow)
+
+## 📌 Project Overview
+
+**Project Name:** "MyOwnWeather v2"
+
+## 🌟 Preview
+
+![Weather App Home Screen](screenshots_preview/HOME-PAGE.png)
+![Weather Forecast](screenshots_preview/DETAILS-PAGE.png)
+![Location Search](screenshots_preview/SEARCH-PAGE.png)
+![Settings](screenshots_preview/SETTINGS-PAGE.png)
+![Log-In Page](screenshots_preview/LOGIN-PAGE.png)
+
 **MyOwnWeather-v2** is a weather app that fetches and displays current weather data. In this version, I focused on improving the overall design, usability, and performance from MyOwnWeather (v1). By leveraging modern front-end practices and integrating AI suggestions via v0.dev, this app provides a clean and responsive interface.
 
 ## Motivation
 
 After building the original version of MyOwnWeather (v1) using VSCode, I recognized the need for a more polished UI and better user experience. I experimented with v0.dev to generate an improved interface, then iterated on the result by hand using tools like Cursor and VSCode. This project as a testament to my growth as a front-end developer and my commitment to continuously improving my work.
+
+---
 
 ## Features
 
@@ -17,6 +33,8 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 - Dark/light mode theme support
 - Smooth animations with Framer Motion
 
+---
+
 ## Tech Stack
 
 - Next.js 14 (App Router)
@@ -28,6 +46,8 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 - WeatherAPI
 - React Server Components
 - Client-side and server-side rendering
+
+---
 
 ## Getting Started
 
@@ -71,6 +91,8 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the app
 
+---
+
 ## Project Structure
 
 ```
@@ -93,23 +115,27 @@ weather-app/
 └── .env.example          # Example environment variables
 ```
 
-## Screenshots
-
-[Include screenshots of your app in both light and dark mode]
+---
 
 ## Future Improvements
 
-- Weather maps integration
-- Historical weather data
+- Log-in functionality
 - Multiple location saving
 - More detailed statistics
 - Weather alerts and notifications
 - Offline support with PWA capabilities
 
+---
+
 ## License
 
-MIT
+This project is licensed under the [MIT License](./LICENSE). Feel free to use, modify, and distribute this project as per the terms of the license.
 
-## Author
+---
 
-Francisco1904
+## 📬 Contact Information
+
+- **GitHub:** [Francisco1904](https://github.com/Francisco1904)
+- **Email:** [franciscopontes94@gmail.com](mailto:franciscopontes94@gmail.com)
+
+---
