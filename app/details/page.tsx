@@ -211,7 +211,7 @@ export default function DetailedForecast() {
             <span>Hourly Forecast</span>
           </div>
 
-          <div className="-mx-2 overflow-x-auto px-2 pb-2">
+          <div className="scrollbar-styled -mx-2 overflow-x-auto px-2 pb-2">
             <div className="flex min-w-max space-x-3">
               {displayHourly.map((hour, index) => {
                 const hourTime = new Date(hour.time);
