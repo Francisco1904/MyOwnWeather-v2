@@ -1,47 +1,61 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ArrowLeft, Moon, Sun, Home, BarChart2, Search, Settings, LogOut, User, UserPlus, LogIn } from "lucide-react"
-import { useTheme } from "next-themes"
-import Link from "next/link"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { getCurrentUser, logoutUser } from "@/lib/auth"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Moon,
+  Sun,
+  Home,
+  BarChart2,
+  Search,
+  Settings,
+  LogOut,
+  User,
+  UserPlus,
+  LogIn,
+} from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { getCurrentUser, logoutUser } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useTemperature } from '@/lib/context/temperature-context';
 
 export default function SettingsPage() {
-  const [mounted, setMounted] = useState(false)
-  const [currentUser, setCurrentUser] = useState(null)
-  const { theme, setTheme } = useTheme()
-  const router = useRouter()
+  const [mounted, setMounted] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+  const { theme, setTheme } = useTheme();
+  const { unit, toggleUnit, isReady } = useTemperature();
+  const router = useRouter();
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     // Get current user on component mount
-    setCurrentUser(getCurrentUser())
-  }, [])
+    setCurrentUser(getCurrentUser());
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
-  const isDark = theme === "dark"
+  const isDark = theme === 'dark';
 
   const handleLogout = () => {
-    logoutUser()
-    setCurrentUser(null)
+    logoutUser();
+    setCurrentUser(null);
     // Optionally redirect to home page
-    router.push("/")
-  }
+    router.push('/');
+  };
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-sky-400 to-purple-500 dark:from-slate-900 dark:to-purple-900 flex flex-col items-center p-4 text-white">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
       <div className="w-full max-w-md">
-        <header className="flex items-center mb-6">
+        <header className="mb-6 flex items-center">
           <Link href="/">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="p-2 rounded-full bg-white/20 dark:bg-slate-800/40 backdrop-blur-md mr-4"
+              className="mr-4 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
             >
               <ArrowLeft className="h-5 w-5" />
             </motion.div>
@@ -51,18 +65,18 @@ export default function SettingsPage() {
 
         {/* Account Section */}
         <motion.div
-          className="w-full rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+          className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Account</h2>
+            <h2 className="mb-6 text-xl font-semibold">Account</h2>
 
             {currentUser ? (
               <div className="space-y-6">
                 <div className="flex items-center">
-                  <div className="h-12 w-12 rounded-full bg-white/20 dark:bg-slate-700/40 flex items-center justify-center mr-4">
+                  <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 dark:bg-slate-700/40">
                     <User className="h-6 w-6" />
                   </div>
                   <div>
@@ -73,36 +87,36 @@ export default function SettingsPage() {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40 font-medium transition-all duration-300 flex justify-center items-center"
+                  className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
                 >
-                  <LogOut className="h-5 w-5 mr-2" />
+                  <LogOut className="mr-2 h-5 w-5" />
                   Log Out
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-white/80 mb-4">
+                <p className="mb-4 text-white/80">
                   Sign in to save your preferences and access your weather data across devices.
                 </p>
 
-                <Link href="/auth/login" className="w-full">
+                <Link href="/auth/login" className="mb-4 block w-full">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl bg-white/20 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50 font-medium transition-all duration-300 flex justify-center items-center"
+                    className="flex w-full items-center justify-center rounded-xl bg-white/20 py-3 font-medium transition-all duration-300 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50"
                   >
-                    <LogIn className="h-5 w-5 mr-2" />
+                    <LogIn className="mr-2 h-5 w-5" />
                     Log In
                   </motion.button>
                 </Link>
 
-                <Link href="/auth/signup" className="w-full">
+                <Link href="/auth/signup" className="block w-full">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40 font-medium transition-all duration-300 flex justify-center items-center"
+                    className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
                   >
-                    <UserPlus className="h-5 w-5 mr-2" />
+                    <UserPlus className="mr-2 h-5 w-5" />
                     Create Account
                   </motion.button>
                 </Link>
@@ -113,18 +127,18 @@ export default function SettingsPage() {
 
         {/* Appearance Section */}
         <motion.div
-          className="w-full rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+          className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Appearance</h2>
+            <h2 className="mb-6 text-xl font-semibold">Appearance</h2>
 
             <div className="space-y-6">
               {/* Theme Toggle */}
               <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <Label className="text-base font-medium">Dark Mode</Label>
                     <p className="text-sm opacity-80">Switch between light and dark themes</p>
@@ -133,7 +147,7 @@ export default function SettingsPage() {
                     <Sun className="h-4 w-4 text-yellow-300 dark:text-yellow-200" />
                     <Switch
                       checked={isDark}
-                      onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                      onCheckedChange={checked => setTheme(checked ? 'dark' : 'light')}
                       className="data-[state=checked]:bg-slate-700"
                     />
                     <Moon className="h-4 w-4" />
@@ -141,48 +155,48 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Theme Preview */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="mt-4 grid grid-cols-2 gap-4">
                   <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setTheme("light")}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
-                      !isDark ? "border-white ring-2 ring-white/50" : "border-transparent"
+                    onClick={() => setTheme('light')}
+                    className={`relative cursor-pointer overflow-hidden rounded-xl border-2 transition-all ${
+                      !isDark ? 'border-white ring-2 ring-white/50' : 'border-transparent'
                     }`}
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-sky-400 to-purple-500 opacity-90"></div>
                     <div className="relative p-3">
-                      <div className="rounded-lg bg-white/20 backdrop-blur-sm p-2 mb-2">
-                        <div className="h-3 w-16 bg-white/60 rounded-full mb-1"></div>
-                        <div className="h-3 w-10 bg-white/60 rounded-full"></div>
+                      <div className="mb-2 rounded-lg bg-white/20 p-2 backdrop-blur-sm">
+                        <div className="mb-1 h-3 w-16 rounded-full bg-white/60"></div>
+                        <div className="h-3 w-10 rounded-full bg-white/60"></div>
                       </div>
                       <div className="flex justify-between">
                         <div className="h-6 w-6 rounded-full bg-white/30"></div>
                         <div className="h-6 w-10 rounded-lg bg-white/30"></div>
                       </div>
-                      <div className="mt-2 text-xs text-center font-medium">Light</div>
+                      <div className="mt-2 text-center text-xs font-medium">Light</div>
                     </div>
                   </motion.div>
 
                   <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setTheme("dark")}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
-                      isDark ? "border-white ring-2 ring-white/50" : "border-transparent"
+                    onClick={() => setTheme('dark')}
+                    className={`relative cursor-pointer overflow-hidden rounded-xl border-2 transition-all ${
+                      isDark ? 'border-white ring-2 ring-white/50' : 'border-transparent'
                     }`}
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-purple-900 opacity-90"></div>
                     <div className="relative p-3">
-                      <div className="rounded-lg bg-slate-800/40 backdrop-blur-sm p-2 mb-2">
-                        <div className="h-3 w-16 bg-white/40 rounded-full mb-1"></div>
-                        <div className="h-3 w-10 bg-white/40 rounded-full"></div>
+                      <div className="mb-2 rounded-lg bg-slate-800/40 p-2 backdrop-blur-sm">
+                        <div className="mb-1 h-3 w-16 rounded-full bg-white/40"></div>
+                        <div className="h-3 w-10 rounded-full bg-white/40"></div>
                       </div>
                       <div className="flex justify-between">
                         <div className="h-6 w-6 rounded-full bg-slate-700/50"></div>
                         <div className="h-6 w-10 rounded-lg bg-slate-700/50"></div>
                       </div>
-                      <div className="mt-2 text-xs text-center font-medium">Dark</div>
+                      <div className="mt-2 text-center text-xs font-medium">Dark</div>
                     </div>
                   </motion.div>
                 </div>
@@ -193,25 +207,31 @@ export default function SettingsPage() {
 
         {/* Preferences Section */}
         <motion.div
-          className="w-full rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+          className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Preferences</h2>
+            <h2 className="mb-6 text-xl font-semibold">Preferences</h2>
 
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-base font-medium">Temperature Unit</Label>
                   <p className="text-sm opacity-80">Choose between Celsius and Fahrenheit</p>
                 </div>
-                <Switch defaultChecked={true} />
+                {isReady && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">°C</span>
+                    <Switch checked={unit === 'F'} onCheckedChange={toggleUnit} />
+                    <span className="text-sm font-medium">°F</span>
+                  </div>
+                )}
               </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <div className="flex justify-between items-center">
+              <div className="border-t border-white/10 pt-4">
+                <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <Label className="text-base font-medium">Notifications</Label>
                     <p className="text-sm opacity-80">Receive weather alerts and updates</p>
@@ -227,39 +247,59 @@ export default function SettingsPage() {
       {/* Bottom Navigation */}
       <BottomNav activePage="settings" />
     </div>
-  )
+  );
 }
 
-function BottomNav({ activePage }) {
+function BottomNav({ activePage }: { activePage: string }) {
   return (
     <motion.nav
-      className="fixed bottom-0 left-0 right-0 bg-white/20 dark:bg-slate-800/30 backdrop-blur-md p-4 flex justify-around items-center transition-colors duration-300"
+      className="fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white/20 p-4 backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <NavItem href="/" icon={<Home />} label="Home" active={activePage === "home"} />
-      <NavItem href="/details" icon={<BarChart2 />} label="Details" active={activePage === "details"} />
-      <NavItem href="/search" icon={<Search />} label="Search" active={activePage === "search"} />
-      <NavItem href="/settings" icon={<Settings />} label="Settings" active={activePage === "settings"} />
+      <NavItem href="/" icon={<Home />} label="Home" active={activePage === 'home'} />
+      <NavItem
+        href="/details"
+        icon={<BarChart2 />}
+        label="Details"
+        active={activePage === 'details'}
+      />
+      <NavItem href="/search" icon={<Search />} label="Search" active={activePage === 'search'} />
+      <NavItem
+        href="/settings"
+        icon={<Settings />}
+        label="Settings"
+        active={activePage === 'settings'}
+      />
     </motion.nav>
-  )
+  );
 }
 
-function NavItem({ href, icon, label, active = false }) {
+interface NavItemProps {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+}
+
+function NavItem({ href, icon, label, active = false }: NavItemProps) {
   return (
     <Link href={href}>
-      <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+      <motion.div
+        className="flex flex-col items-center"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
         <div
-          className={`p-2 rounded-full transition-colors duration-300 ${
-            active ? "bg-white/30 dark:bg-slate-700/40" : "text-white/70"
+          className={`rounded-full p-2 transition-colors duration-300 ${
+            active ? 'bg-white/30 dark:bg-slate-700/40' : 'text-white/70'
           }`}
         >
           {icon}
         </div>
-        <span className={`text-xs mt-1 ${active ? "opacity-100" : "opacity-70"}`}>{label}</span>
+        <span className={`mt-1 text-xs ${active ? 'opacity-100' : 'opacity-70'}`}>{label}</span>
       </motion.div>
     </Link>
-  )
+  );
 }
-

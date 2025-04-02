@@ -1,106 +1,122 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertCircle, Loader2, Check } from "lucide-react"
-import { useTheme } from "next-themes"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { createUser } from "@/lib/auth"
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
+  Check,
+} from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createUser } from '@/lib/auth';
 
 export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { theme } = useTheme()
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+  const { theme } = useTheme();
 
   // Password strength indicators
-  const hasMinLength = password.length >= 8
-  const hasUpperCase = /[A-Z]/.test(password)
-  const hasLowerCase = /[a-z]/.test(password)
-  const hasNumber = /[0-9]/.test(password)
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(password)
+  const hasMinLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
 
-  const passwordStrength = [hasMinLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar].filter(Boolean).length
+  const passwordStrength = [
+    hasMinLength,
+    hasUpperCase,
+    hasLowerCase,
+    hasNumber,
+    hasSpecialChar,
+  ].filter(Boolean).length;
 
   const getPasswordStrengthLabel = () => {
-    if (passwordStrength <= 2) return "Weak"
-    if (passwordStrength <= 4) return "Medium"
-    return "Strong"
-  }
+    if (passwordStrength <= 2) return 'Weak';
+    if (passwordStrength <= 4) return 'Medium';
+    return 'Strong';
+  };
 
   const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 2) return "bg-red-500"
-    if (passwordStrength <= 4) return "bg-yellow-500"
-    return "bg-green-500"
-  }
+    if (passwordStrength <= 2) return 'bg-red-500';
+    if (passwordStrength <= 4) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
 
-  const handleSignup = async (e) => {
-    e.preventDefault()
-    setError("")
+  const handleSignup = async e => {
+    e.preventDefault();
+    setError('');
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
+      setError('Passwords do not match');
+      return;
     }
 
     // Validate password strength
     if (passwordStrength < 3) {
-      setError("Please use a stronger password")
-      return
+      setError('Please use a stronger password');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // In a real app, this would make an API call to your registration endpoint
-      const result = await createUser(name, email, password)
+      const result = await createUser(name, email, password);
 
       if (result.success) {
         // Redirect to login page after successful signup
-        router.push("/auth/login?registered=true")
+        router.push('/auth/login?registered=true');
       } else {
-        setError(result.message)
+        setError(result.message);
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
-      console.error(err)
+      setError('An unexpected error occurred. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignup = async () => {
-    setError("")
-    setIsLoading(true)
+    setError('');
+    setIsLoading(true);
 
     try {
       // In a real app, this would initiate OAuth flow with Google
       // For this demo, we'll simulate a successful signup after a delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      router.push("/")
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      router.push('/');
     } catch (err) {
-      setError("Google authentication failed. Please try again.")
-      console.error(err)
+      setError('Google authentication failed. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-sky-400 to-purple-500 dark:from-slate-900 dark:to-purple-900 flex flex-col items-center p-4 text-white">
-      <header className="w-full max-w-md mb-6 flex items-center">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+      <header className="mb-6 flex w-full max-w-md items-center">
         <Link href="/settings">
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full bg-white/20 dark:bg-slate-800/40 backdrop-blur-md mr-3"
+            className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
             aria-label="Go back to settings"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -117,7 +133,7 @@ export default function SignupPage() {
       </header>
 
       <motion.div
-        className="w-full max-w-md rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+        className="mb-6 w-full max-w-md overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -125,11 +141,11 @@ export default function SignupPage() {
         <div className="p-6">
           {error && (
             <motion.div
-              className="mb-6 p-3 rounded-lg bg-red-500/20 border border-red-500/30 flex items-start"
+              className="mb-6 flex items-start rounded-lg border border-red-500/30 bg-red-500/20 p-3"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" />
               <p>{error}</p>
             </motion.div>
           )}
@@ -140,16 +156,16 @@ export default function SignupPage() {
                 Full Name
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <User className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="name"
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-3 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="John Doe"
                 />
               </div>
@@ -160,16 +176,16 @@ export default function SignupPage() {
                 Email
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Mail className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-3 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -180,28 +196,28 @@ export default function SignupPage() {
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Lock className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-10 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-10 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-white/70 hover:text-white transition-colors" />
+                    <EyeOff className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
                   ) : (
-                    <Eye className="h-5 w-5 text-white/70 hover:text-white transition-colors" />
+                    <Eye className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
                   )}
                 </button>
               </div>
@@ -209,11 +225,11 @@ export default function SignupPage() {
               {/* Password strength indicator */}
               {password.length > 0 && (
                 <div className="mt-2 space-y-2">
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-xs">Password strength: {getPasswordStrengthLabel()}</span>
                     <span className="text-xs">{passwordStrength}/5</span>
                   </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                     <div
                       className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
@@ -224,7 +240,10 @@ export default function SignupPage() {
                     <PasswordRequirement met={hasUpperCase} text="At least one uppercase letter" />
                     <PasswordRequirement met={hasLowerCase} text="At least one lowercase letter" />
                     <PasswordRequirement met={hasNumber} text="At least one number" />
-                    <PasswordRequirement met={hasSpecialChar} text="At least one special character" />
+                    <PasswordRequirement
+                      met={hasSpecialChar}
+                      text="At least one special character"
+                    />
                   </ul>
                 </div>
               )}
@@ -235,63 +254,63 @@ export default function SignupPage() {
                 Confirm Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Lock className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="confirmPassword"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={e => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-3 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
                 />
               </div>
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-300 mt-1">Passwords do not match</p>
+                <p className="mt-1 text-xs text-red-300">Passwords do not match</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-white/20 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50 font-medium transition-all duration-300 flex justify-center items-center"
+              className="flex w-full items-center justify-center rounded-xl bg-white/20 py-3 font-medium transition-all duration-300 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Creating account...
                 </>
               ) : (
-                "Create Account"
+                'Create Account'
               )}
             </button>
           </form>
 
           <div className="mt-6 flex items-center">
-            <div className="flex-grow h-px bg-white/20"></div>
+            <div className="h-px flex-grow bg-white/20"></div>
             <span className="px-3 text-sm text-white/70">or</span>
-            <div className="flex-grow h-px bg-white/20"></div>
+            <div className="h-px flex-grow bg-white/20"></div>
           </div>
 
           <button
             onClick={handleGoogleSignup}
             disabled={isLoading}
-            className="mt-6 w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40 font-medium transition-all duration-300 flex justify-center items-center"
+            className="mt-6 flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                <GoogleIcon className="h-5 w-5 mr-2" />
+                <GoogleIcon className="mr-2 h-5 w-5" />
                 Sign up with Google
               </>
             )}
           </button>
 
           <p className="mt-6 text-center text-sm">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link href="/auth/login" className="font-medium hover:underline">
               Log in
             </Link>
@@ -299,7 +318,7 @@ export default function SignupPage() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }
 
 // Password requirement component
@@ -307,13 +326,13 @@ function PasswordRequirement({ met, text }) {
   return (
     <li className="flex items-center">
       {met ? (
-        <Check className="h-3.5 w-3.5 mr-2 text-green-400" />
+        <Check className="mr-2 h-3.5 w-3.5 text-green-400" />
       ) : (
-        <div className="h-3.5 w-3.5 mr-2 rounded-full border border-white/30" />
+        <div className="mr-2 h-3.5 w-3.5 rounded-full border border-white/30" />
       )}
-      <span className={met ? "text-white" : "text-white/50"}>{text}</span>
+      <span className={met ? 'text-white' : 'text-white/50'}>{text}</span>
     </li>
-  )
+  );
 }
 
 // Google icon component
@@ -337,6 +356,5 @@ function GoogleIcon({ className }) {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
-

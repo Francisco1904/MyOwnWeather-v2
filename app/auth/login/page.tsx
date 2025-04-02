@@ -1,70 +1,70 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
-import { useTheme } from "next-themes"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { authenticateUser } from "@/lib/auth"
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { authenticateUser } from '@/lib/auth';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { theme } = useTheme()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+  const { theme } = useTheme();
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+  const handleLogin = async e => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     try {
       // In a real app, this would make an API call to your authentication endpoint
-      const result = await authenticateUser(email, password)
+      const result = await authenticateUser(email, password);
 
       if (result.success) {
         // Redirect to home page after successful login
-        router.push("/")
+        router.push('/');
       } else {
-        setError(result.message)
+        setError(result.message);
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
-      console.error(err)
+      setError('An unexpected error occurred. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = async () => {
-    setError("")
-    setIsLoading(true)
+    setError('');
+    setIsLoading(true);
 
     try {
       // In a real app, this would initiate OAuth flow with Google
       // For this demo, we'll simulate a successful login after a delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      router.push("/")
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      router.push('/');
     } catch (err) {
-      setError("Google authentication failed. Please try again.")
-      console.error(err)
+      setError('Google authentication failed. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-sky-400 to-purple-500 dark:from-slate-900 dark:to-purple-900 flex flex-col items-center p-4 text-white">
-      <header className="w-full max-w-md mb-6 flex items-center">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+      <header className="mb-6 flex w-full max-w-md items-center">
         <Link href="/settings">
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full bg-white/20 dark:bg-slate-800/40 backdrop-blur-md mr-3"
+            className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
             aria-label="Go back to settings"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -81,7 +81,7 @@ export default function LoginPage() {
       </header>
 
       <motion.div
-        className="w-full max-w-md rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+        className="mb-6 w-full max-w-md overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -89,11 +89,11 @@ export default function LoginPage() {
         <div className="p-6">
           {error && (
             <motion.div
-              className="mb-6 p-3 rounded-lg bg-red-500/20 border border-red-500/30 flex items-start"
+              className="mb-6 flex items-start rounded-lg border border-red-500/30 bg-red-500/20 p-3"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" />
               <p>{error}</p>
             </motion.div>
           )}
@@ -104,16 +104,16 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Mail className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-3 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -124,28 +124,28 @@ export default function LoginPage() {
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Lock className="h-5 w-5 text-white/70" />
                 </div>
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
-                  className="w-full py-3 pl-10 pr-10 rounded-xl bg-white/10 dark:bg-slate-700/20 placeholder-white/60 text-white border-0 focus:ring-2 focus:ring-white/30 transition-all duration-300"
+                  className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-10 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-white/70 hover:text-white transition-colors" />
+                    <EyeOff className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
                   ) : (
-                    <Eye className="h-5 w-5 text-white/70 hover:text-white transition-colors" />
+                    <Eye className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
                   )}
                 </button>
               </div>
@@ -160,42 +160,42 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-white/20 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50 font-medium transition-all duration-300 flex justify-center items-center"
+              className="flex w-full items-center justify-center rounded-xl bg-white/20 py-3 font-medium transition-all duration-300 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Logging in...
                 </>
               ) : (
-                "Log In"
+                'Log In'
               )}
             </button>
           </form>
 
           <div className="mt-6 flex items-center">
-            <div className="flex-grow h-px bg-white/20"></div>
+            <div className="h-px flex-grow bg-white/20"></div>
             <span className="px-3 text-sm text-white/70">or</span>
-            <div className="flex-grow h-px bg-white/20"></div>
+            <div className="h-px flex-grow bg-white/20"></div>
           </div>
 
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="mt-6 w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40 font-medium transition-all duration-300 flex justify-center items-center"
+            className="mt-6 flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                <GoogleIcon className="h-5 w-5 mr-2" />
+                <GoogleIcon className="mr-2 h-5 w-5" />
                 Continue with Google
               </>
             )}
           </button>
 
           <p className="mt-6 text-center text-sm">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <Link href="/auth/signup" className="font-medium hover:underline">
               Sign up
             </Link>
@@ -203,7 +203,7 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }
 
 // Google icon component
@@ -227,6 +227,5 @@ function GoogleIcon({ className }) {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
-

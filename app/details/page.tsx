@@ -1,175 +1,174 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
-import {
-  ArrowLeft,
-  Cloud,
-  CloudRain,
-  CloudSun,
-  Droplets,
-  Sun,
-  Thermometer,
-  Umbrella,
-  Wind,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useTheme } from "next-themes"
-import Link from "next/link"
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Umbrella, Cloud, CloudSun, Droplets, Wind } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useWeather } from '@/hooks/useWeather';
+import { Skeleton } from '@/components/ui/skeleton';
+import ForecastCard from '@/components/weather/ForecastCard';
+import { formatDate } from '@/lib/utils';
+import { useTemperature } from '@/lib/context/temperature-context';
 
-// Mock data for our detailed forecasts
-const hourlyForecast = [
-  { time: "Now", temp: 19, icon: <CloudSun />, precipitation: 0 },
-  { time: "13:00", temp: 20, icon: <CloudSun />, precipitation: 0 },
-  { time: "14:00", temp: 21, icon: <Sun />, precipitation: 0 },
-  { time: "15:00", temp: 21, icon: <Sun />, precipitation: 0 },
-  { time: "16:00", temp: 20, icon: <CloudSun />, precipitation: 0 },
-  { time: "17:00", temp: 19, icon: <Cloud />, precipitation: 10 },
-  { time: "18:00", temp: 18, icon: <CloudRain />, precipitation: 30 },
-  { time: "19:00", temp: 17, icon: <CloudRain />, precipitation: 40 },
-  { time: "20:00", temp: 16, icon: <Cloud />, precipitation: 20 },
-  { time: "21:00", temp: 15, icon: <Cloud />, precipitation: 10 },
-  { time: "22:00", temp: 15, icon: <Cloud />, precipitation: 0 },
-  { time: "23:00", temp: 14, icon: <Cloud />, precipitation: 0 },
-]
+// Custom icon component to match the style in the screenshot
+function WeatherIcon({
+  icon,
+  className = '',
+  size = 24,
+}: {
+  icon: React.ReactNode;
+  className?: string;
+  size?: number;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center rounded-full bg-white/20 p-2 ${className}`}
+      style={{ width: size + 16, height: size + 16 }}
+    >
+      {icon}
+    </div>
+  );
+}
 
-const dailyForecast = [
-  {
-    day: "Today",
-    date: "Apr 1",
-    high: 21,
-    low: 14,
-    icon: <CloudSun />,
-    precipitation: 30,
-    wind: 17,
-    humidity: 68,
-    sunrise: "06:42",
-    sunset: "19:54",
-    description: "Partly cloudy with a chance of rain in the evening",
-  },
-  {
-    day: "Wed",
-    date: "Apr 2",
-    high: 22,
-    low: 15,
-    icon: <Sun />,
-    precipitation: 0,
-    wind: 12,
-    humidity: 55,
-    sunrise: "06:40",
-    sunset: "19:55",
-    description: "Clear skies throughout the day",
-  },
-  {
-    day: "Thu",
-    date: "Apr 3",
-    high: 23,
-    low: 16,
-    icon: <Sun />,
-    precipitation: 0,
-    wind: 10,
-    humidity: 50,
-    sunrise: "06:39",
-    sunset: "19:56",
-    description: "Sunny and warm",
-  },
-  {
-    day: "Fri",
-    date: "Apr 4",
-    high: 20,
-    low: 15,
-    icon: <CloudRain />,
-    precipitation: 60,
-    wind: 20,
-    humidity: 75,
-    sunrise: "06:37",
-    sunset: "19:57",
-    description: "Rain throughout the day",
-  },
-  {
-    day: "Sat",
-    date: "Apr 5",
-    high: 18,
-    low: 13,
-    icon: <CloudRain />,
-    precipitation: 70,
-    wind: 25,
-    humidity: 80,
-    sunrise: "06:36",
-    sunset: "19:58",
-    description: "Heavy rain and windy",
-  },
-  {
-    day: "Sun",
-    date: "Apr 6",
-    high: 19,
-    low: 14,
-    icon: <Cloud />,
-    precipitation: 20,
-    wind: 15,
-    humidity: 65,
-    sunrise: "06:34",
-    sunset: "19:59",
-    description: "Cloudy with occasional sun",
-  },
-  {
-    day: "Mon",
-    date: "Apr 7",
-    high: 21,
-    low: 15,
-    icon: <CloudSun />,
-    precipitation: 10,
-    wind: 12,
-    humidity: 60,
-    sunrise: "06:33",
-    sunset: "20:00",
-    description: "Mostly sunny with some clouds",
-  },
-]
-
-const detailedMetrics = {
-  humidity: 68,
-  dewPoint: 13,
-  uvIndex: 5,
-  visibility: 16,
-  pressure: 1015,
-  feelsLike: 19,
+// Add this interface to match the one in WeatherCard.tsx
+interface HourlyForecast {
+  time: string;
+  temp_c: number;
+  temp_f: number;
+  condition: {
+    text: string;
+    icon: string;
+  };
+  chance_of_rain: number;
 }
 
 export default function DetailedForecast() {
-  const [mounted, setMounted] = useState(false)
-  const [expandedDay, setExpandedDay] = useState<number | null>(null)
-  const router = useRouter()
-  const { theme } = useTheme()
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const { theme } = useTheme();
+  const { unit, isReady } = useTemperature();
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { currentWeather, forecast, isLoading, error, refetch } = useWeather();
 
-  if (!mounted) return null
-
-  const isDark = theme === "dark"
+  // Helper function to get temperature in the selected unit
+  const getTemp = (celsius: number, fahrenheit: number) => {
+    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
+  };
 
   const toggleDayExpansion = (index: number) => {
     if (expandedDay === index) {
-      setExpandedDay(null)
+      setExpandedDay(null);
     } else {
-      setExpandedDay(index)
+      setExpandedDay(index);
     }
+  };
+
+  if (isLoading) {
+    return (
+      <>
+        <header className="mb-6 flex w-full max-w-md items-center justify-between">
+          <div className="flex items-center">
+            <Link href="/">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
+                aria-label="Go back to home"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </motion.div>
+            </Link>
+            <h1 className="text-2xl font-bold">Detailed Forecast</h1>
+          </div>
+        </header>
+
+        <div className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 p-6 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30">
+          <Skeleton className="mb-4 h-8 w-48" />
+          <Skeleton className="mb-3 h-6 w-full" />
+          <div className="flex space-x-3 overflow-x-auto pb-2">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-16 rounded-xl" />
+            ))}
+          </div>
+        </div>
+
+        <div className="w-full space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          ))}
+        </div>
+      </>
+    );
   }
 
+  if (error || !forecast) {
+    return (
+      <>
+        <header className="mb-6 flex w-full max-w-md items-center justify-between">
+          <div className="flex items-center">
+            <Link href="/">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
+                aria-label="Go back to home"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </motion.div>
+            </Link>
+            <h1 className="text-2xl font-bold">Detailed Forecast</h1>
+          </div>
+        </header>
+
+        <div className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 p-6 text-center shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30">
+          <h2 className="mb-2 text-xl font-semibold">Error Loading Forecast</h2>
+          <p>{error?.message || 'Failed to load weather data'}</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 rounded-lg bg-white/20 px-4 py-2 transition-colors hover:bg-white/30"
+          >
+            Try Again
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // Extract data from the API response
+  const { location, current } = currentWeather!;
+  const { forecastday } = forecast.forecast;
+  const hourlyData = forecastday[0].hour;
+
+  // Get the current hour to filter hourly data
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  // Filter hourly forecast to show from current hour onwards (or all if we're near end of day)
+  const filteredHourly = hourlyData.filter(hour => {
+    const hourTime = new Date(hour.time);
+    return hourTime.getHours() >= currentHour;
+  });
+
+  // If we have less than 8 hours left today, add some from tomorrow
+  let displayHourly = filteredHourly;
+  if (filteredHourly.length < 8 && forecastday.length > 1) {
+    const tomorrowHours = forecastday[1].hour.slice(0, 8 - filteredHourly.length);
+    displayHourly = [...filteredHourly, ...tomorrowHours];
+  }
+
+  // Ensure we only show 12 hours max
+  displayHourly = displayHourly.slice(0, 12);
+
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-sky-400 to-purple-500 dark:from-slate-900 dark:to-purple-900 flex flex-col items-center p-4 text-white pb-20">
-      <header className="w-full max-w-md mb-6 flex justify-between items-center">
+    <>
+      <header className="mb-6 flex w-full items-center justify-between">
         <div className="flex items-center">
           <Link href="/">
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-full bg-white/20 dark:bg-slate-800/40 backdrop-blur-md mr-3"
+              className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
               aria-label="Go back to home"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -187,292 +186,93 @@ export default function DetailedForecast() {
       </header>
 
       <motion.div
-        className="w-full max-w-md rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+        className="mb-6 w-full overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
+          <div className="mb-4 flex items-start justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Lisboa, Portugal</h2>
-              <p className="text-sm opacity-90">Tuesday, 1 Apr</p>
+              <h2 className="text-xl font-semibold">
+                {location.name}, {location.country}
+              </h2>
+              <p className="text-sm opacity-90">{formatDate(location.localtime, 'EEEE, d MMM')}</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold">19°</p>
-              <p className="text-sm">Partly Cloudy</p>
+              <p className="text-3xl font-bold">
+                {getTemp(current.temp_c, current.temp_f)}°{isReady ? unit : ''}
+              </p>
+              <p className="text-sm">{current.condition.text}</p>
             </div>
           </div>
 
-          <div className="flex justify-between text-sm mb-2">
+          <div className="mb-2 flex justify-between text-sm">
             <span>Hourly Forecast</span>
           </div>
 
-          <div className="overflow-x-auto pb-2 -mx-2 px-2">
-            <div className="flex space-x-3 min-w-max">
-              {hourlyForecast.map((hour, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                  className="flex flex-col items-center bg-white/10 dark:bg-slate-700/20 rounded-xl p-3 min-w-[70px]"
-                >
-                  <span className="text-xs">{hour.time}</span>
-                  <div className="my-1">{hour.icon}</div>
-                  <span className="font-medium">{hour.temp}°</span>
-                  <div className="flex items-center mt-1">
-                    <Umbrella className="h-3 w-3 mr-1" />
-                    <span className="text-xs">{hour.precipitation}%</span>
-                  </div>
-                </motion.div>
-              ))}
+          <div className="-mx-2 overflow-x-auto px-2 pb-2">
+            <div className="flex min-w-max space-x-3">
+              {displayHourly.map((hour, index) => {
+                const hourTime = new Date(hour.time);
+                const displayTime = index === 0 ? 'Now' : hourTime.getHours() + ':00';
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                    className="flex min-w-[70px] flex-col items-center rounded-xl bg-white/10 p-3 dark:bg-slate-700/20"
+                  >
+                    <span className="text-xs">{displayTime}</span>
+                    {/* Use custom weather icon based on condition */}
+                    <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                      {hour.condition.text.toLowerCase().includes('rain') ? (
+                        <Umbrella className="h-4 w-4 text-white" />
+                      ) : hour.condition.text.toLowerCase().includes('cloud') ? (
+                        <Cloud className="h-4 w-4 text-white" />
+                      ) : (
+                        <CloudSun className="h-4 w-4 text-white" />
+                      )}
+                    </div>
+                    <span className="font-medium">
+                      {getTemp(hour.temp_c, hour.temp_f)}°{isReady ? unit : ''}
+                    </span>
+                    <div className="mt-1 flex items-center">
+                      <div className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
+                        <Umbrella className="h-2 w-2 text-white" />
+                      </div>
+                      <span className="text-xs">{hour.chance_of_rain}%</span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
       </motion.div>
 
       <motion.div
-        className="w-full max-w-md rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
+        className="w-full space-y-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <div className="p-6">
-          <div className="flex justify-between text-sm mb-4">
-            <span>7-Day Forecast</span>
-          </div>
-
-          <div className="space-y-2">
-            {dailyForecast.map((day, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors",
-                    expandedDay === index
-                      ? "bg-white/20 dark:bg-slate-700/30"
-                      : "bg-white/10 dark:bg-slate-700/20 hover:bg-white/15 dark:hover:bg-slate-700/25",
-                  )}
-                  onClick={() => toggleDayExpansion(index)}
-                >
-                  <div className="flex items-center">
-                    <div className="w-10">{day.icon}</div>
-                    <div className="ml-2">
-                      <div className="font-medium">{day.day}</div>
-                      <div className="text-xs opacity-80">{day.date}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="text-right mr-3">
-                      <span className="text-sm font-medium">{day.high}°</span>
-                      <span className="text-sm text-white/70 ml-2">{day.low}°</span>
-                    </div>
-                    {expandedDay === index ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  </div>
-                </div>
-
-                {expandedDay === index && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white/10 dark:bg-slate-700/20 p-4 rounded-xl mt-1"
-                  >
-                    <p className="text-sm mb-3">{day.description}</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center">
-                        <Umbrella className="h-4 w-4 mr-2" />
-                        <div>
-                          <div className="text-xs opacity-80">Precipitation</div>
-                          <div className="text-sm font-medium">{day.precipitation}%</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Wind className="h-4 w-4 mr-2" />
-                        <div>
-                          <div className="text-xs opacity-80">Wind</div>
-                          <div className="text-sm font-medium">{day.wind} km/h</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Droplets className="h-4 w-4 mr-2" />
-                        <div>
-                          <div className="text-xs opacity-80">Humidity</div>
-                          <div className="text-sm font-medium">{day.humidity}%</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Sun className="h-4 w-4 mr-2" />
-                        <div>
-                          <div className="text-xs opacity-80">Sunrise/Sunset</div>
-                          <div className="text-sm font-medium">
-                            {day.sunrise}/{day.sunset}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            ))}
-          </div>
+        <div className="mb-2 flex justify-between px-1 text-sm">
+          <span>{forecastday.length}-Day Forecast</span>
         </div>
+
+        {forecastday.map((day, index) => (
+          <ForecastCard
+            key={index}
+            day={day}
+            isExpanded={expandedDay === index}
+            onToggle={() => toggleDayExpansion(index)}
+            index={index}
+          />
+        ))}
       </motion.div>
-
-      <motion.div
-        className="w-full max-w-md rounded-3xl overflow-hidden bg-white/20 dark:bg-slate-800/30 backdrop-blur-md shadow-lg transition-colors duration-300 mb-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <div className="p-6">
-          <div className="flex justify-between text-sm mb-4">
-            <span>Today's Details</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
-              <div className="flex items-center mb-2">
-                <Droplets className="h-4 w-4 mr-2" />
-                <span className="text-sm">Humidity</span>
-              </div>
-              <div className="text-xl font-medium">{detailedMetrics.humidity}%</div>
-              <div className="w-full bg-white/20 dark:bg-slate-600/30 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="bg-blue-400 dark:bg-blue-500 h-full rounded-full"
-                  style={{ width: `${detailedMetrics.humidity}%` }}
-                ></div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.35 }}
-            >
-              <div className="flex items-center mb-2">
-                <Thermometer className="h-4 w-4 mr-2" />
-                <span className="text-sm">Feels Like</span>
-              </div>
-              <div className="text-xl font-medium">{detailedMetrics.feelsLike}°C</div>
-              <div className="text-xs opacity-70 mt-2">Similar to the actual temperature</div>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-            >
-              <div className="flex items-center mb-2">
-                <Wind className="h-4 w-4 mr-2" />
-                <span className="text-sm">Wind</span>
-              </div>
-              <div className="text-xl font-medium">17 km/h</div>
-              <div className="text-xs opacity-70 mt-2">Westerly wind</div>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.45 }}
-            >
-              <div className="flex items-center mb-2">
-                <Umbrella className="h-4 w-4 mr-2" />
-                <span className="text-sm">Precipitation</span>
-              </div>
-              <div className="text-xl font-medium">30%</div>
-              <div className="text-xs opacity-70 mt-2">Chance of rain tonight</div>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-            >
-              <div className="flex items-center mb-2">
-                <Sun className="h-4 w-4 mr-2" />
-                <span className="text-sm">UV Index</span>
-              </div>
-              <div className="text-xl font-medium">{detailedMetrics.uvIndex} (Moderate)</div>
-              <div className="w-full bg-white/20 dark:bg-slate-600/30 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="bg-yellow-400 dark:bg-yellow-500 h-full rounded-full"
-                  style={{ width: `${(detailedMetrics.uvIndex / 10) * 100}%` }}
-                ></div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/10 dark:bg-slate-700/20 p-3 rounded-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.55 }}
-            >
-              <div className="flex items-center mb-2">
-                <Cloud className="h-4 w-4 mr-2" />
-                <span className="text-sm">Pressure</span>
-              </div>
-              <div className="text-xl font-medium">{detailedMetrics.pressure} hPa</div>
-              <div className="text-xs opacity-70 mt-2">Normal</div>
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Bottom Navigation */}
-      <BottomNav activePage="details" />
-    </div>
-  )
+    </>
+  );
 }
-
-function BottomNav({ activePage }) {
-  return (
-    <motion.nav
-      className="fixed bottom-0 left-0 right-0 bg-white/20 dark:bg-slate-800/30 backdrop-blur-md p-4 flex justify-around items-center transition-colors duration-300"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <NavItem href="/" icon={<Home />} label="Home" active={activePage === "home"} />
-      <NavItem href="/details" icon={<BarChart2 />} label="Details" active={activePage === "details"} />
-      <NavItem href="/search" icon={<Search />} label="Search" active={activePage === "search"} />
-      <NavItem href="/settings" icon={<Settings />} label="Settings" active={activePage === "settings"} />
-    </motion.nav>
-  )
-}
-
-function NavItem({ href, icon, label, active = false }) {
-  return (
-    <Link href={href}>
-      <motion.div className="flex flex-col items-center" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-        <div
-          className={`p-2 rounded-full transition-colors duration-300 ${
-            active ? "bg-white/30 dark:bg-slate-700/40" : "text-white/70"
-          }`}
-        >
-          {icon}
-        </div>
-        <span className={`text-xs mt-1 ${active ? "opacity-100" : "opacity-70"}`}>{label}</span>
-      </motion.div>
-    </Link>
-  )
-}
-
-// Import icons
-import { Home, BarChart2, Search, Settings } from "lucide-react"
-
