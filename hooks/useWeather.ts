@@ -78,7 +78,16 @@ export function useWeather(initialLocation?: string) {
         fetchWeather(newLocation);
       }
     },
-    [state.location]
+    [fetchWeather, state.location]
+  );
+
+  // Fetch weather for specific coordinates (used by favorites)
+  const fetchByCoordinates = useCallback(
+    (lat: number, lon: number) => {
+      const locationString = `${lat},${lon}`;
+      setLocation(locationString);
+    },
+    [setLocation]
   );
 
   // Initial fetch on mount
@@ -88,11 +97,12 @@ export function useWeather(initialLocation?: string) {
     } else {
       getUserLocation();
     }
-  }, [initialLocation]); // Only depend on initialLocation
+  }, [initialLocation, fetchWeather, getUserLocation]);
 
   return {
     ...state,
     setLocation,
+    fetchByCoordinates,
     refetch: () => fetchWeather(state.location),
     getUserLocation,
   };

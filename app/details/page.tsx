@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ForecastCard from '@/components/weather/ForecastCard';
 import { formatDate } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
+import { FavoriteStar } from '@/components/weather/FavoriteStar';
 
 // Custom icon component to match the style in the screenshot
 function WeatherIcon({
@@ -199,11 +200,20 @@ export default function DetailedForecast() {
               </h2>
               <p className="text-sm opacity-90">{formatDate(location.localtime, 'EEEE, d MMM')}</p>
             </div>
-            <div className="text-right">
+            <div className="flex flex-col items-end">
               <p className="text-3xl font-bold">
                 {getTemp(current.temp_c, current.temp_f)}°{isReady ? unit : ''}
               </p>
               <p className="text-sm">{current.condition.text}</p>
+              <FavoriteStar
+                location={{
+                  name: location.name,
+                  country: location.country,
+                  lat: location.lat,
+                  lon: location.lon,
+                }}
+                className="mt-1"
+              />
             </div>
           </div>
 

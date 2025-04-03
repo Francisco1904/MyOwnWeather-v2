@@ -15,7 +15,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     <AuthProvider>
       <TemperatureProvider>
         <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
-          <div className="mb-20 w-full max-w-md">{children}</div>
+          <div className="has-bottom-nav mb-20 w-full max-w-md">{children}</div>
 
           <BottomNav pathname={pathname} />
         </div>

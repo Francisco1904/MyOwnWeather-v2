@@ -113,20 +113,20 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+    <>
       <header className="mb-6 flex w-full max-w-md items-center">
         <Link href="/settings">
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
+            className="back-button"
             aria-label="Go back to settings"
           >
             <ArrowLeft className="h-5 w-5" />
           </motion.div>
         </Link>
         <motion.h1
-          className="text-2xl font-bold"
+          className="section-title"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -136,7 +136,7 @@ export default function SignupPage() {
       </header>
 
       <motion.div
-        className="mb-6 w-full max-w-md overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
+        className="content-card mb-6 w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -320,7 +320,7 @@ export default function SignupPage() {
           </p>
         </div>
       </motion.div>
-    </div>
+    </>
   );
 }
 

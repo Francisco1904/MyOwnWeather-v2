@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -30,9 +30,15 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
+    --weather-card-from: #1e88e5; /* Light blue */
+    --weather-card-to: #0d47a1; /* Darker blue */
   }
 
   .dark {
@@ -45,7 +51,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -62,7 +68,13 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.5% 48%;
+    --ring: 212.7 26.8% 83.9%;
+
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+    --weather-card-from: #5e35b1; /* Purple */
+    --weather-card-to: #311b92; /* Dark purple */
   }
 }
 
@@ -73,6 +85,44 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Global scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+
+  /* Add padding to bottom of scrollable containers to prevent overlap with nav bar */
+  .has-bottom-nav {
+    padding-bottom: 70px; /* Reduced to prevent excessive space */
+  }
+
+  /* Prevent scrollbars from overlapping with nav */
+  .overflow-y-auto,
+  .overflow-auto {
+    /* Adjust scrollbar height to prevent overlap with bottom nav */
+    max-height: calc(100vh - 70px);
+  }
 }
 
 /* Custom transitions for smooth theme switching */
@@ -82,16 +132,48 @@
   transition-duration: 300ms;
 }
 
-/* Add scrollbar utility classes at the bottom of the file */
+/* Weather card classes */
+.weather-card {
+  @apply overflow-hidden rounded-3xl bg-white/20 p-6 text-white shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
+}
 
-/* Styled scrollbar */
+.weather-card-item {
+  @apply flex flex-col items-center rounded-xl bg-white/10 p-3 backdrop-blur-sm transition-colors hover:bg-white/15;
+}
+
+/* Custom scrollbar classes for specific components - maintain for backward compatibility */
+/* Custom scrollbar for the favorites list */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Style for the horizontal scrollbar */
 .scrollbar-styled::-webkit-scrollbar {
-  height: 5px;
-  width: 5px;
+  height: 6px;
 }
 
 .scrollbar-styled::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   border-radius: 10px;
 }
 
@@ -102,4 +184,34 @@
 
 .scrollbar-styled::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* Carousel styles */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+.snap-mandatory {
+  --webkit-overflow-scrolling: touch;
+}
+
+/* Add common styling for content cards across the app */
+.content-card {
+  @apply overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
+}
+
+.section-header {
+  @apply mb-6 flex items-center;
+}
+
+.back-button {
+  @apply mr-4 rounded-full bg-white/20 p-2 backdrop-blur-md transition-colors hover:bg-white/30 dark:bg-slate-800/40 dark:hover:bg-slate-800/50;
+}
+
+.section-title {
+  @apply text-2xl font-bold;
 }

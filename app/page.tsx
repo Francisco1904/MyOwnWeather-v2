@@ -10,11 +10,14 @@ import { WeatherCard } from '@/components/weather/WeatherCard';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { ForecastData, CurrentWeather } from '@/lib/services/weatherApi';
+import { FavoritesCarousel } from '@/components/weather/FavoritesCarousel';
+import { useAuth } from '@/lib/context/auth-context';
 
 export default function HomePage() {
   const { theme } = useTheme();
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location');
+  const { isAuthenticated } = useAuth();
 
   const {
     currentWeather,
@@ -36,38 +39,36 @@ export default function HomePage() {
 
   return (
     <>
-      <header className="mb-6 w-full max-w-md">
-        <motion.div
-          className="flex items-center justify-between"
+      <header className="section-header">
+        <motion.h1
+          className="section-title"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="flex-1 text-center text-2xl font-bold">My Weather</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => refetch()}
-            disabled={isLoading}
-            className="text-white"
-            aria-label="Refresh weather data"
-          >
-            <RefreshCcw
-              className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
-              aria-hidden="true"
-            />
-            <span className="sr-only">Refresh</span>
-          </Button>
-        </motion.div>
+          My Weather
+        </motion.h1>
+        <div className="flex-1"></div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => refetch()}
+          disabled={isLoading}
+          className="back-button"
+          aria-label="Refresh weather data"
+        >
+          <RefreshCcw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
+          <span className="sr-only">Refresh</span>
+        </Button>
       </header>
 
       <motion.div
-        className="w-full"
+        className="w-full space-y-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        {/* Weather Card Component */}
+        {/* Weather Card (Already using the weather-card class with appropriate styling) */}
         <WeatherCard
           weatherData={currentWeather}
           forecast={forecast || undefined}
@@ -76,19 +77,32 @@ export default function HomePage() {
         />
 
         {currentWeather && forecast && !isLoading && (
-          <Link href="/details">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="mt-4 w-full rounded-xl bg-white/30 py-4 font-medium transition-all duration-300 hover:bg-white/40 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              aria-label="View detailed forecast"
-            >
-              View Detailed Forecast
-            </motion.button>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Link href="/details">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full overflow-hidden rounded-xl bg-white/20 py-4 font-medium shadow-sm backdrop-blur-md transition-all duration-300 hover:bg-white/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+                aria-label="View detailed forecast"
+              >
+                View Detailed Forecast
+              </motion.button>
+            </Link>
+          </motion.div>
+        )}
+
+        {isAuthenticated && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <FavoritesCarousel />
+          </motion.div>
         )}
       </motion.div>
     </>

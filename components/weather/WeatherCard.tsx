@@ -10,6 +10,8 @@ import { CurrentWeather } from '@/lib/services/weatherApi';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { useTemperature } from '@/lib/context/temperature-context';
+import { FavoriteStar } from '@/components/weather/FavoriteStar';
+import { useTheme } from 'next-themes';
 
 // Custom icon component to match the style in the screenshot
 function WeatherIcon({
@@ -60,6 +62,7 @@ interface WeatherCardProps {
 
 export function WeatherCard({ weatherData, forecast, isLoading, error }: WeatherCardProps) {
   const { unit, isReady } = useTemperature();
+  const { theme } = useTheme();
 
   // Helper function to get temperature in the selected unit
   const getTemp = (celsius: number, fahrenheit: number | undefined) => {
@@ -68,23 +71,23 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
 
   if (isLoading) {
     return (
-      <div className="animate-pulse overflow-hidden rounded-3xl bg-gradient-to-br from-blue-400 to-blue-500 p-6 shadow-lg">
+      <div className="weather-card animate-pulse">
         <div className="flex justify-between">
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-8 w-36 bg-white/20" />
+          <Skeleton className="h-8 w-8 rounded-full bg-white/20" />
         </div>
         <div className="mt-8 flex flex-col items-center">
-          <Skeleton className="mb-4 h-24 w-24 rounded-full" />
-          <Skeleton className="mb-2 h-16 w-32" />
-          <Skeleton className="h-6 w-40" />
+          <Skeleton className="mb-4 h-24 w-24 rounded-full bg-white/20" />
+          <Skeleton className="mb-2 h-16 w-32 bg-white/20" />
+          <Skeleton className="h-6 w-40 bg-white/20" />
         </div>
         <div className="mt-6 flex justify-between">
-          <Skeleton className="h-8 w-20" />
-          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20 bg-white/20" />
+          <Skeleton className="h-8 w-20 bg-white/20" />
         </div>
         <div className="mt-6 grid grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            <Skeleton key={i} className="h-16 w-full rounded-xl bg-white/20" />
           ))}
         </div>
       </div>
@@ -93,7 +96,7 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
 
   if (error || !weatherData) {
     return (
-      <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-400 to-blue-500 p-6 text-center text-white shadow-lg">
+      <div className="weather-card text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
           <CloudSun className="h-10 w-10 text-white" />
         </div>
@@ -129,7 +132,7 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
   const { location, current } = weatherData;
 
   return (
-    <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-400 to-blue-500 p-6 text-white shadow-lg">
+    <div className="weather-card">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">
@@ -137,16 +140,26 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
           </h2>
           <p className="text-sm opacity-90">{formatDate(location.localtime, 'EEEE, MMM d')}</p>
         </div>
-        <Link href="/search">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20"
-            role="button"
-            tabIndex={0}
-            aria-label="Search for location"
-          >
-            <Search className="h-5 w-5 text-white" />
-          </div>
-        </Link>
+        <div className="flex items-center space-x-2">
+          <FavoriteStar
+            location={{
+              name: location.name,
+              country: location.country,
+              lat: location.lat,
+              lon: location.lon,
+            }}
+          />
+          <Link href="/search">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 transition-colors hover:bg-white/30"
+              role="button"
+              tabIndex={0}
+              aria-label="Search for location"
+            >
+              <Search className="h-5 w-5 text-white" />
+            </div>
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col items-center">
@@ -184,13 +197,13 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
       </div>
 
       <div className="mt-6 grid grid-cols-3 gap-4">
-        <div className="flex flex-col items-center rounded-xl bg-white/10 p-3">
+        <div className="weather-card-item">
           <WeatherIcon icon={<Droplets className="h-5 w-5 text-white" aria-hidden="true" />} />
           <p className="mt-2 text-xs opacity-80">Humidity</p>
           <p className="font-bold">{current.humidity}%</p>
         </div>
 
-        <div className="flex flex-col items-center rounded-xl bg-white/10 p-3">
+        <div className="weather-card-item">
           <WeatherIcon icon={<Wind className="h-5 w-5 text-white" aria-hidden="true" />} />
           <p className="mt-2 text-xs opacity-80">Wind</p>
           <p className="font-bold">
@@ -200,7 +213,7 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
           </p>
         </div>
 
-        <div className="flex flex-col items-center rounded-xl bg-white/10 p-3">
+        <div className="weather-card-item">
           <WeatherIcon icon={<CloudSun className="h-5 w-5 text-white" aria-hidden="true" />} />
           <p className="mt-2 text-xs opacity-80">Feels Like</p>
           <p className="font-bold">
@@ -218,7 +231,10 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
               const displayTime = index === 0 ? 'Now' : hourTime.getHours() + ':00';
 
               return (
-                <div key={index} className="flex flex-col items-center rounded-xl bg-white/10 p-2">
+                <div
+                  key={index}
+                  className="flex flex-col items-center rounded-xl bg-white/10 p-2 backdrop-blur-sm transition-all hover:bg-white/15"
+                >
                   <span className="text-xs">{displayTime}</span>
                   {/* Render custom icon instead of API image */}
                   <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
