@@ -39,6 +39,15 @@
     --background-end-rgb: 255, 255, 255;
     --weather-card-from: #1e88e5; /* Light blue */
     --weather-card-to: #0d47a1; /* Darker blue */
+
+    /* iOS safe area insets - defaults to 0 if not supported */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+
+    /* Status bar height for iOS devices */
+    --status-bar-height: 44px;
   }
 
   .dark {
@@ -114,14 +123,22 @@
 
   /* Add padding to bottom of scrollable containers to prevent overlap with nav bar */
   .has-bottom-nav {
-    padding-bottom: 70px; /* Reduced to prevent excessive space */
+    padding-bottom: calc(100px + var(--safe-area-inset-bottom)); /* Reverted from 100px to 70px */
   }
 
   /* Prevent scrollbars from overlapping with nav */
   .overflow-y-auto,
   .overflow-auto {
     /* Adjust scrollbar height to prevent overlap with bottom nav */
-    max-height: calc(100vh - 70px);
+    max-height: calc(100vh - 70px - var(--safe-area-inset-bottom));
+  }
+
+  /* iOS-specific adjustments */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    body {
+      /* Add padding for the status bar */
+      padding-top: var(--safe-area-inset-top);
+    }
   }
 }
 
@@ -204,8 +221,22 @@
   @apply overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
 }
 
+/* Base section header styling (without iOS-specific padding) */
 .section-header {
-  @apply mb-6 flex items-center;
+  @apply relative mb-6 flex items-center;
+  padding-top: 16px; /* Add consistent 16px top padding regardless of device */
+}
+
+/* Apply iOS-specific padding only on real iOS devices with notches */
+@supports (padding-top: env(safe-area-inset-top)) {
+  /* Target mobile devices where the notch/status bar matters */
+  @media screen and (max-device-width: 844px) {
+    .section-header {
+      padding-top: calc(
+        16px + env(safe-area-inset-top, 0px)
+      ); /* Add 16px plus the iOS safe area inset */
+    }
+  }
 }
 
 .back-button {

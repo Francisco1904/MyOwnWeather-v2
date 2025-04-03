@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -17,6 +17,13 @@ export const metadata: Metadata = {
     description: 'A modern weather application with real-time forecasts',
     type: 'website',
   },
+};
+
+// Separate viewport export as recommended by Next.js
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

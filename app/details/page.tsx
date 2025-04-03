@@ -68,7 +68,7 @@ export default function DetailedForecast() {
   if (isLoading) {
     return (
       <>
-        <header className="mb-6 flex w-full max-w-md items-center justify-between">
+        <header className="section-header">
           <div className="flex items-center">
             <Link href="/">
               <motion.div
@@ -80,7 +80,14 @@ export default function DetailedForecast() {
                 <ArrowLeft className="h-5 w-5" />
               </motion.div>
             </Link>
-            <h1 className="text-2xl font-bold">Detailed Forecast</h1>
+            <motion.h1
+              className="section-title"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Detailed Forecast
+            </motion.h1>
           </div>
         </header>
 
@@ -106,7 +113,7 @@ export default function DetailedForecast() {
   if (error || !forecast) {
     return (
       <>
-        <header className="mb-6 flex w-full max-w-md items-center justify-between">
+        <header className="section-header">
           <div className="flex items-center">
             <Link href="/">
               <motion.div
@@ -118,7 +125,14 @@ export default function DetailedForecast() {
                 <ArrowLeft className="h-5 w-5" />
               </motion.div>
             </Link>
-            <h1 className="text-2xl font-bold">Detailed Forecast</h1>
+            <motion.h1
+              className="section-title"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Detailed Forecast
+            </motion.h1>
           </div>
         </header>
 
@@ -163,7 +177,7 @@ export default function DetailedForecast() {
 
   return (
     <>
-      <header className="mb-6 flex w-full items-center justify-between">
+      <header className="section-header">
         <div className="flex items-center">
           <Link href="/">
             <motion.div
@@ -176,7 +190,7 @@ export default function DetailedForecast() {
             </motion.div>
           </Link>
           <motion.h1
-            className="text-2xl font-bold"
+            className="section-title"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -273,15 +287,18 @@ export default function DetailedForecast() {
           <span>{forecastday.length}-Day Forecast</span>
         </div>
 
-        {forecastday.map((day, index) => (
-          <ForecastCard
-            key={index}
-            day={day}
-            isExpanded={expandedDay === index}
-            onToggle={() => toggleDayExpansion(index)}
-            index={index}
-          />
-        ))}
+        {/* Forecast for next several days */}
+        <div className="space-y-4">
+          {forecastday.map((day, index) => (
+            <ForecastCard
+              key={index}
+              day={day}
+              unit={unit}
+              isExpanded={expandedDay === index}
+              onToggle={() => toggleDayExpansion(index)}
+            />
+          ))}
+        </div>
       </motion.div>
     </>
   );

@@ -41,12 +41,12 @@ export default function HomePage() {
     <>
       <header className="section-header">
         <motion.h1
-          className="section-title"
+          className="section-title w-full text-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          My Weather
+          Weather
         </motion.h1>
         <div className="flex-1"></div>
         <Button
@@ -54,7 +54,7 @@ export default function HomePage() {
           size="icon"
           onClick={() => refetch()}
           disabled={isLoading}
-          className="back-button"
+          className="back-button absolute right-0"
           aria-label="Refresh weather data"
         >
           <RefreshCcw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />

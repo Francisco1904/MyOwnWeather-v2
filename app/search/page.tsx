@@ -298,6 +298,17 @@ export default function SearchPage() {
             </AnimatePresence>
           </div>
         </div>
+
+        {searchResults.length === 0 && !isSearching && searchQuery !== '' && (
+          <motion.div
+            className="my-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <p>No locations found for &ldquo;{searchQuery}&rdquo;</p>
+          </motion.div>
+        )}
       </motion.div>
     </>
   );
