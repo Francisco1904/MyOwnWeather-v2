@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -16,7 +16,7 @@ import {
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUser } from '@/lib/auth';
+import { useAuth } from '@/lib/context/auth-context';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -28,6 +28,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { theme } = useTheme();
+  const { signup, loginWithGoogle } = useAuth();
 
   // Password strength indicators
   const hasMinLength = password.length >= 8;
@@ -56,7 +57,7 @@ export default function SignupPage() {
     return 'bg-green-500';
   };
 
-  const handleSignup = async e => {
+  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
@@ -75,14 +76,13 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // In a real app, this would make an API call to your registration endpoint
-      const result = await createUser(name, email, password);
+      const result = await signup(name, email, password);
 
       if (result.success) {
         // Redirect to login page after successful signup
         router.push('/auth/login?registered=true');
       } else {
-        setError(result.message);
+        setError(result.message || 'Failed to create account. Please try again.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -97,10 +97,13 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // In a real app, this would initiate OAuth flow with Google
-      // For this demo, we'll simulate a successful signup after a delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push('/');
+      const result = await loginWithGoogle();
+
+      if (result.success) {
+        router.push('/');
+      } else {
+        setError(result.message || 'Google sign-up failed. Please try again.');
+      }
     } catch (err) {
       setError('Google authentication failed. Please try again.');
       console.error(err);
@@ -322,7 +325,7 @@ export default function SignupPage() {
 }
 
 // Password requirement component
-function PasswordRequirement({ met, text }) {
+function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
   return (
     <li className="flex items-center">
       {met ? (
@@ -336,7 +339,7 @@ function PasswordRequirement({ met, text }) {
 }
 
 // Google icon component
-function GoogleIcon({ className }) {
+function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path

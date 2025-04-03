@@ -1,19 +1,19 @@
-// This is a mock authentication service for demonstration purposes
-// In a real application, these functions would make API calls to your backend
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import { auth } from './firebase';
 
-// User interface
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-}
-
-// Public user interface (without password)
+// Public user interface
 export interface PublicUser {
-  id: number;
-  name: string;
-  email: string;
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL?: string | null;
 }
 
 // Auth result interface
@@ -23,111 +23,110 @@ interface AuthResult {
   user?: PublicUser;
 }
 
-// Simulated user database
-const users: User[] = [
-  {
-    id: 1,
-    name: "Demo User",
-    email: "demo@example.com",
-    // In a real app, this would be a hashed password
-    password: "Password123!",
-  },
-];
-
-// Simulate network delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+// Helper function to convert Firebase user to our PublicUser
+const formatUser = (user: FirebaseUser): PublicUser => {
+  return {
+    uid: user.uid,
+    displayName: user.displayName,
+    email: user.email,
+    photoURL: user.photoURL,
+  };
+};
 
 // Authenticate a user
 export async function authenticateUser(email: string, password: string): Promise<AuthResult> {
-  // Simulate API call
-  await delay(1000);
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return {
+      success: true,
+      user: formatUser(userCredential.user),
+    };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    let message = 'An error occurred during login';
 
-  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (error.code === 'auth/user-not-found') {
+      message = 'No account found with this email';
+    } else if (error.code === 'auth/wrong-password') {
+      message = 'Invalid password';
+    } else if (error.code === 'auth/invalid-credential') {
+      message = 'Invalid email or password';
+    } else if (error.code === 'auth/too-many-requests') {
+      message = 'Too many failed login attempts. Please try again later';
+    }
 
-  if (!user) {
-    return { success: false, message: "No account found with this email" };
+    return { success: false, message };
   }
-
-  if (user.password !== password) {
-    return { success: false, message: "Invalid password" };
-  }
-
-  // In a real app, this would set cookies, store tokens, etc.
-  if (typeof window !== "undefined") {
-    localStorage.setItem("currentUser", JSON.stringify({ 
-      id: user.id, 
-      name: user.name, 
-      email: user.email 
-    }));
-  }
-
-  return { 
-    success: true, 
-    user: { id: user.id, name: user.name, email: user.email }
-  };
 }
 
 // Create a new user
-export async function createUser(name: string, email: string, password: string): Promise<AuthResult> {
-  // Simulate API call
-  await delay(1500);
+export async function createUser(
+  name: string,
+  email: string,
+  password: string
+): Promise<AuthResult> {
+  try {
+    // Create the user
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-  // Check if user already exists
-  const existingUser = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  if (existingUser) {
-    return { success: false, message: "An account with this email already exists" };
+    // Update the user profile with the provided name
+    await updateProfile(userCredential.user, {
+      displayName: name,
+    });
+
+    return {
+      success: true,
+      user: formatUser(userCredential.user),
+    };
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    let message = 'An error occurred during signup';
+
+    if (error.code === 'auth/email-already-in-use') {
+      message = 'An account with this email already exists';
+    } else if (error.code === 'auth/weak-password') {
+      message = 'Password is too weak';
+    } else if (error.code === 'auth/invalid-email') {
+      message = 'Invalid email address';
+    }
+
+    return { success: false, message };
   }
-
-  // In a real app, this would create a user in your database
-  const newUser: User = {
-    id: users.length + 1,
-    name,
-    email,
-    password, // In a real app, this would be hashed
-  };
-
-  users.push(newUser);
-
-  return { 
-    success: true, 
-    user: { id: newUser.id, name: newUser.name, email: newUser.email } 
-  };
 }
 
 // Reset password
 export async function resetPassword(email: string): Promise<AuthResult> {
-  // Simulate API call
-  await delay(1500);
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return {
+      success: true,
+      message: 'Password reset email sent. Check your inbox.',
+    };
+  } catch (error: any) {
+    console.error('Password reset error:', error);
+    let message = 'An error occurred during password reset';
 
-  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (error.code === 'auth/user-not-found') {
+      // For security reasons, don't reveal if the email exists
+      return {
+        success: true,
+        message: "If an account with this email exists, we've sent a password reset link.",
+      };
+    } else if (error.code === 'auth/invalid-email') {
+      message = 'Invalid email address';
+    }
 
-  if (!user) {
-    // For security reasons, don't reveal if the email exists or not
-    return { success: true };
+    return { success: false, message };
   }
-
-  // In a real app, this would send an email with a reset link
-  return { success: true };
 }
 
 // Get current user
 export function getCurrentUser(): PublicUser | null {
-  if (typeof window === "undefined") return null;
-
-  const userJson = localStorage.getItem("currentUser");
-  if (!userJson) return null;
-
-  try {
-    return JSON.parse(userJson) as PublicUser;
-  } catch (e) {
-    return null;
-  }
+  const user = auth.currentUser;
+  return user ? formatUser(user) : null;
 }
 
 // Logout user
-export function logoutUser(): void {
-  if (typeof window === "undefined") return;
-
-  localStorage.removeItem("currentUser");
+export function logoutUser(): Promise<void> {
+  return signOut(auth);
 }
-

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent, MouseEvent } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { resetPassword } from '@/lib/auth';
+import { useAuth } from '@/lib/context/auth-context';
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
@@ -13,21 +13,44 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const { theme } = useTheme();
+  const { requestPasswordReset } = useAuth();
 
-  const handleResetPassword = async e => {
+  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
     setIsLoading(true);
 
     try {
-      // In a real app, this would make an API call to your password reset endpoint
-      const result = await resetPassword(email);
+      const result = await requestPasswordReset(email);
 
       if (result.success) {
         setSuccess(true);
       } else {
-        setError(result.message);
+        setError(result.message || 'Failed to reset password. Please try again.');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for the "try again" button click inside the success state
+  const handleTryAgain = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setError('');
+    setSuccess(false);
+    setIsLoading(true);
+
+    try {
+      const result = await requestPasswordReset(email);
+
+      if (result.success) {
+        setSuccess(true);
+      } else {
+        setError(result.message || 'Failed to reset password. Please try again.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -93,7 +116,7 @@ export default function ResetPasswordPage() {
               <p className="text-sm text-white/70">
                 Didn't receive the email? Check your spam folder or{' '}
                 <button
-                  onClick={handleResetPassword}
+                  onClick={handleTryAgain}
                   className="text-white underline hover:text-white/90"
                 >
                   try again

@@ -9,6 +9,7 @@ import { useWeather } from '@/hooks/useWeather';
 import { WeatherCard } from '@/components/weather/WeatherCard';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
+import { ForecastData, CurrentWeather } from '@/lib/services/weatherApi';
 
 export default function HomePage() {
   const { theme } = useTheme();
@@ -28,10 +29,10 @@ export default function HomePage() {
 
   // Update the weather data when the location query parameter changes
   useEffect(() => {
-    if (locationParam) {
+    if (locationParam && locationParam !== location) {
       setLocation(locationParam);
     }
-  }, [locationParam, setLocation]);
+  }, [locationParam, setLocation, location]);
 
   return (
     <>
@@ -69,7 +70,7 @@ export default function HomePage() {
         {/* Weather Card Component */}
         <WeatherCard
           weatherData={currentWeather}
-          forecast={forecast}
+          forecast={forecast || undefined}
           isLoading={isLoading}
           error={error}
         />

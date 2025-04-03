@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authenticateUser } from '@/lib/auth';
+import { useAuth } from '@/lib/context/auth-context';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,21 +16,21 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { theme } = useTheme();
+  const { login, loginWithGoogle } = useAuth();
 
-  const handleLogin = async e => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      // In a real app, this would make an API call to your authentication endpoint
-      const result = await authenticateUser(email, password);
+      const result = await login(email, password);
 
       if (result.success) {
         // Redirect to home page after successful login
         router.push('/');
       } else {
-        setError(result.message);
+        setError(result.message || 'Login failed. Please try again.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -45,10 +45,13 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // In a real app, this would initiate OAuth flow with Google
-      // For this demo, we'll simulate a successful login after a delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push('/');
+      const result = await loginWithGoogle();
+
+      if (result.success) {
+        router.push('/');
+      } else {
+        setError(result.message || 'Google login failed. Please try again.');
+      }
     } catch (err) {
       setError('Google authentication failed. Please try again.');
       console.error(err);
@@ -207,7 +210,7 @@ export default function LoginPage() {
 }
 
 // Google icon component
-function GoogleIcon({ className }) {
+function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path

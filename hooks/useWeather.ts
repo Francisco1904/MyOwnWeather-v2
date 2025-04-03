@@ -19,7 +19,7 @@ export function useWeather(initialLocation?: string) {
     location: initialLocation || defaultLocation,
   });
 
-  const fetchWeather = async (location: string) => {
+  const fetchWeather = useCallback(async (location: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
@@ -44,10 +44,10 @@ export function useWeather(initialLocation?: string) {
         error: error instanceof Error ? error : new Error('Failed to fetch weather data'),
       }));
     }
-  };
+  }, []);
 
   // Try to get user's current location
-  const getUserLocation = () => {
+  const getUserLocation = useCallback(() => {
     if (navigator.geolocation) {
       setState(prev => ({ ...prev, isLoading: true }));
 
@@ -67,13 +67,19 @@ export function useWeather(initialLocation?: string) {
       // Geolocation not supported, use default location
       fetchWeather(state.location);
     }
-  };
+  }, [fetchWeather, state.location]);
 
   // Fetch weather for a specific location
-  const setLocation = (newLocation: string) => {
-    setState(prev => ({ ...prev, location: newLocation }));
-    fetchWeather(newLocation);
-  };
+  const setLocation = useCallback(
+    (newLocation: string) => {
+      // Only fetch if the location has actually changed
+      if (newLocation !== state.location) {
+        setState(prev => ({ ...prev, location: newLocation }));
+        fetchWeather(newLocation);
+      }
+    },
+    [state.location]
+  );
 
   // Initial fetch on mount
   useEffect(() => {
@@ -82,8 +88,7 @@ export function useWeather(initialLocation?: string) {
     } else {
       getUserLocation();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialLocation]); // Only depend on initialLocation
 
   return {
     ...state,

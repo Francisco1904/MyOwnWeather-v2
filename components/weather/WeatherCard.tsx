@@ -35,7 +35,7 @@ function WeatherIcon({
 interface HourlyForecast {
   time: string;
   temp_c: number;
-  temp_f: number;
+  temp_f?: number; // Make optional to accommodate the API response
   condition: {
     text: string;
     icon: string;
@@ -62,8 +62,8 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
   const { unit, isReady } = useTemperature();
 
   // Helper function to get temperature in the selected unit
-  const getTemp = (celsius: number, fahrenheit: number) => {
-    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
+  const getTemp = (celsius: number, fahrenheit: number | undefined) => {
+    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit || celsius * 1.8 + 32);
   };
 
   if (isLoading) {
