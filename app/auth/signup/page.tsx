@@ -114,7 +114,7 @@ export default function SignupPage() {
 
   return (
     <>
-      <header className="mb-6 flex w-full max-w-md items-center">
+      <header className="section-header">
         <Link href="/settings">
           <motion.div
             whileHover={{ scale: 1.1 }}

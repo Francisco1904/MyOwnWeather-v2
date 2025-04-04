@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <header className="mb-6 flex w-full max-w-md items-center">
+      <header className="section-header">
         <Link href="/auth/login">
           <motion.div
             whileHover={{ scale: 1.1 }}
