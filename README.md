@@ -43,7 +43,7 @@ This project was developed as a solo effort, combining my own design work with A
 - **Smooth Animations**: Enhanced UX with Framer Motion animations
 - **Persistent Storage**: User preferences saved in Firestore
 - **Mobile-First Design**: Perfect experience on phones and tablets
-- **Accessibility Compliant**: Designed for all users with proper contrast and focus states
+- **Accessibility Compliant**: WCAG 2.1 AA compliant with proper keyboard navigation, ARIA attributes, and focus management
 
 ## 📑 Table of Contents
 
@@ -52,9 +52,10 @@ This project was developed as a solo effort, combining my own design work with A
 3. [Tech Stack](#tech-stack)
 4. [Getting Started](#getting-started)
 5. [Project Structure](#project-structure)
-6. [Future Improvements](#future-improvements)
-7. [License](#license)
-8. [Contact Information](#-contact-information)
+6. [Accessibility Features](#accessibility-features)
+7. [Future Improvements](#future-improvements)
+8. [License](#license)
+9. [Contact Information](#-contact-information)
 
 ---
 
@@ -65,7 +66,7 @@ This project was developed as a solo effort, combining my own design work with A
 - **Improved Scrollbars**: Custom styled scrollbars that respect theme changes and don't interfere with navigation
 - **Authentication Flow**: Streamlined login, signup, and password reset processes with consistent design
 - **Visual Feedback**: Better loading states, animations, and user interaction responses
-- **Accessibility**: Improved focus states and contrast for better usability
+- **Accessibility**: Improved focus states, contrast, ARIA attributes, and keyboard navigation for better usability
 
 ## Motivation
 
@@ -262,6 +263,53 @@ This project uses a combination of TailwindCSS and shadcn/ui for a consistent, m
 
 8. **Issue: Weather API rate limiting**
    - ✅ **Solution:** Implemented proper caching and request throttling
+
+---
+
+## Accessibility Features
+
+This application has been built with accessibility as a core principle, not an afterthought. The following accessibility features have been implemented:
+
+### Keyboard Navigation
+
+- **Full Keyboard Support**: All interactive elements are accessible via keyboard
+- **Focus Management**: Visible focus indicators that respect both light and dark themes
+- **Focus Trapping**: In modal dialogs to prevent keyboard users from accessing background content
+- **Skip Links**: Allowing keyboard users to bypass repetitive navigation
+- **Logical Tab Order**: Following the natural reading flow of the page
+
+### Screen Reader Support
+
+- **Semantic HTML**: Proper heading hierarchy and landmark regions
+- **ARIA Attributes**: Including labels, roles, and states for interactive elements
+- **Live Regions**: For dynamic content updates like search results and weather alerts
+- **Status Messages**: Non-visually announced to screen reader users
+- **Alternative Text**: For all informative images and icons
+
+### Visual Considerations
+
+- **Color Contrast**: Meeting WCAG AA standard (4.5:1 for normal text, 3:1 for large text)
+- **Text Resizing**: Support for browser text zoom up to 200%
+- **Motion Control**: Animations can be disabled via reduced motion preferences
+- **Visible Focus States**: High-contrast focus indicators that work in both themes
+- **Icon Recognition**: Icons accompanied by text or appropriate ARIA labels
+
+### Testing & Compliance
+
+- **Automated Testing**: Using Cypress and axe-core for accessibility testing
+- **Keyboard Testing**: Manual testing of all user flows using keyboard-only navigation
+- **Screen Reader Testing**: Verified with popular screen readers (NVDA, VoiceOver)
+- **Compliance Target**: WCAG 2.1 Level AA conformance
+
+### Implementation Examples
+
+- Weather card components use ARIA roles and states to communicate current status
+- Favorite buttons include proper ARIA labels and pressed states
+- Modal dialogs trap focus and announce their purpose to screen readers
+- Form inputs have associated labels and error messaging
+- Interactive elements have appropriate accessible names
+
+These features ensure that all users, regardless of ability or assistive technology, can effectively use the weather application.
 
 ---
 

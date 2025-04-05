@@ -20,3 +20,31 @@ export function formatDate(dateString: string, formatString: string = 'PPp') {
     return dateString; // Return the original string if parsing fails
   }
 }
+
+/**
+ * DEPRECATED: This function was causing issues with keyboard navigation
+ * where Tab key required double-pressing to move to the next element.
+ *
+ * Instead of using this utility, components should implement their own
+ * onKeyDown handlers directly with:
+ *
+ * onKeyDown={e => {
+ *   if (e.key === 'Enter' || e.key === ' ') {
+ *     e.preventDefault();
+ *     callbackFunction();
+ *   }
+ * }}
+ *
+ * This function is kept for backward compatibility but should be avoided
+ * in new code.
+ */
+export function handleKeyboardActivation(e: React.KeyboardEvent, callback: () => void): void {
+  // Only handle Enter and Space keys
+  // Do not interfere with Tab, Shift+Tab, or any navigation keys
+  if (e.key === 'Enter' || e.key === ' ') {
+    // Only prevent default for Enter and Space to avoid interfering with navigation
+    e.preventDefault();
+    callback();
+  }
+  // Let all other keys (including Tab) pass through with their default behavior
+}

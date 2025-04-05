@@ -13,11 +13,14 @@ import {
   BarChart2,
   Search,
   Settings,
+  SearchX,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import weatherService from '@/lib/services/weatherApi';
+import { toast } from '@/hooks/use-toast';
+import { handleKeyboardActivation } from '@/lib/utils';
 
 // Type for search results
 interface LocationResult {
@@ -174,14 +177,13 @@ export default function SearchPage() {
   return (
     <>
       <header className="section-header">
-        <Link href="/">
+        <Link href="/" aria-label="Go back to home">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="back-button"
-            aria-label="Go back to home"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </motion.div>
         </Link>
         <motion.h1
@@ -202,25 +204,44 @@ export default function SearchPage() {
       >
         {/* Search Input */}
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
+            aria-hidden="true"
+          >
             <SearchIcon className="h-5 w-5 text-white/70" />
           </div>
           <input
             ref={inputRef}
             type="text"
-            className="w-full rounded-xl border-0 bg-white/20 py-3 pl-12 pr-12 text-white placeholder-white/60 shadow-sm backdrop-blur-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/30 dark:bg-slate-800/30 dark:focus:ring-slate-500/30"
+            className="w-full rounded-xl border-0 bg-white/20 py-3 pl-12 pr-12 text-white placeholder-white/60 shadow-sm backdrop-blur-md transition-all duration-300 dark:bg-slate-800/30"
             placeholder="Search for a city..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             aria-label="Search for a city"
+            aria-controls="search-results"
+            aria-expanded={searchResults.length > 0 ? 'true' : 'false'}
+            role="combobox"
+            aria-owns="search-results"
+            aria-haspopup="listbox"
+            autoComplete="off"
           />
           {searchQuery && (
             <button
               className="absolute inset-y-0 right-0 flex items-center pr-4"
               onClick={handleClearSearch}
               aria-label="Clear search"
+              onKeyDown={e => {
+                // Only handle Enter and Space, let Tab work naturally
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClearSearch();
+                }
+              }}
             >
-              <X className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
+              <X
+                className="h-5 w-5 text-white/70 transition-colors hover:text-white"
+                aria-hidden="true"
+              />
             </button>
           )}
         </div>
@@ -236,8 +257,9 @@ export default function SearchPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="flex flex-col items-center justify-center py-8"
+                  aria-live="polite"
                 >
-                  <Loader2 className="mb-4 h-8 w-8 animate-spin text-white/70" />
+                  <Loader2 className="mb-4 h-8 w-8 animate-spin text-white/70" aria-hidden="true" />
                   <p className="text-white/70">Searching for locations...</p>
                 </motion.div>
               ) : showRecent ? (
@@ -246,9 +268,13 @@ export default function SearchPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  id="search-results"
+                  role="region"
+                  aria-label="Recent searches"
+                  aria-live="polite"
                 >
                   <h2 className="mb-4 flex items-center text-lg font-semibold">
-                    <Clock className="mr-2 h-5 w-5 text-white/70" />
+                    <Clock className="mr-2 h-5 w-5 text-white/70" aria-hidden="true" />
                     Recent Searches
                   </h2>
                   {recentSearches.length > 0 ? (
@@ -273,9 +299,13 @@ export default function SearchPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  id="search-results"
+                  role="region"
+                  aria-label="Search results"
+                  aria-live="polite"
                 >
                   <h2 className="mb-4 flex items-center text-lg font-semibold">
-                    <MapPin className="mr-2 h-5 w-5 text-white/70" />
+                    <MapPin className="mr-2 h-5 w-5 text-white/70" aria-hidden="true" />
                     Search Results
                   </h2>
                   {searchResults.length > 0 ? (
@@ -305,6 +335,8 @@ export default function SearchPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
           >
             <p>No locations found for &ldquo;{searchQuery}&rdquo;</p>
           </motion.div>
@@ -326,10 +358,23 @@ function RecentSearchItem({ location, onSelect }: RecentSearchItemProps) {
       whileTap={{ scale: 0.99 }}
       className="cursor-pointer rounded-xl bg-white/10 p-3 transition-colors hover:bg-white/20 dark:bg-slate-700/20 dark:hover:bg-slate-700/30"
       onClick={onSelect}
+      onKeyDown={e => {
+        // Only handle Enter and Space, let Tab work naturally
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View weather for ${location.name}`}
     >
       <div className="flex items-center">
-        <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 dark:bg-slate-700/40">
-          <Clock className="h-4 w-4" />
+        <div
+          className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 dark:bg-slate-700/40"
+          aria-hidden="true"
+        >
+          <Clock className="h-4 w-4" aria-hidden="true" />
         </div>
         <div>
           <p className="font-medium">{location.name}</p>
@@ -346,22 +391,35 @@ interface SearchResultItemProps {
 }
 
 function SearchResultItem({ location, onSelect }: SearchResultItemProps) {
+  const locationDescription = [location.region, location.country].filter(Boolean).join(', ');
+
   return (
     <motion.div
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
       className="cursor-pointer rounded-xl bg-white/10 p-3 transition-colors hover:bg-white/20 dark:bg-slate-700/20 dark:hover:bg-slate-700/30"
       onClick={onSelect}
+      onKeyDown={e => {
+        // Only handle Enter and Space, let Tab work naturally
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View weather for ${location.name}, ${locationDescription}`}
     >
       <div className="flex items-center">
-        <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 dark:bg-slate-700/40">
-          <MapPin className="h-4 w-4" />
+        <div
+          className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 dark:bg-slate-700/40"
+          aria-hidden="true"
+        >
+          <MapPin className="h-4 w-4" aria-hidden="true" />
         </div>
         <div>
           <p className="font-medium">{location.name}</p>
-          <p className="text-xs opacity-80">
-            {[location.region, location.country].filter(Boolean).join(', ')}
-          </p>
+          <p className="text-xs opacity-80">{locationDescription}</p>
         </div>
       </div>
     </motion.div>

@@ -13,7 +13,7 @@ import {
   Sunset,
 } from 'lucide-react';
 import { ForecastDay } from '@/lib/services/weatherApi';
-import { formatDate } from '@/lib/utils';
+import { formatDate, handleKeyboardActivation } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
 
 // Custom icon component to match the style in the screenshot
@@ -79,7 +79,13 @@ export default function ForecastCard({ day, isExpanded, onToggle, index }: Forec
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        onKeyDown={e => e.key === 'Enter' && onToggle()}
+        onKeyDown={e => {
+          // Only handle Enter and Space, let Tab work naturally
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
       >
         <div className="flex items-center">
           <WeatherIcon icon={getIcon(dayData.condition.text)} />

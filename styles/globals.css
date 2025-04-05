@@ -12,7 +12,10 @@ body {
   }
 }
 
+/* Focus styles are now handled by the focus-plugin.js */
 @layer base {
+  /* Remove any focus styles from here - they're defined in focus-plugin.js */
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useFavorites } from '@/hooks/useFavorites';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
+import { handleKeyboardActivation } from '@/lib/utils';
 
 interface FavoriteStarProps {
   location: {
@@ -16,17 +18,28 @@ interface FavoriteStarProps {
 
 export function FavoriteStar({ location, className = '' }: FavoriteStarProps) {
   const { isFavorite, addFavorite, removeFavorite, getFavoriteByCoords } = useFavorites();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const isLocationFavorite = isFavorite(location.lat, location.lon);
 
   const handleToggleFavorite = async () => {
-    if (isLocationFavorite) {
-      const favorite = getFavoriteByCoords(location.lat, location.lon);
-      if (favorite) {
-        await removeFavorite(favorite.id, location.name);
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+
+    try {
+      if (isLocationFavorite) {
+        const favorite = getFavoriteByCoords(location.lat, location.lon);
+        if (favorite) {
+          await removeFavorite(favorite.id, location.name);
+        }
+      } else {
+        await addFavorite(location);
       }
-    } else {
-      await addFavorite(location);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -35,8 +48,21 @@ export function FavoriteStar({ location, className = '' }: FavoriteStarProps) {
       variant="ghost"
       size="icon"
       onClick={handleToggleFavorite}
+      onKeyDown={e => {
+        // Only handle Enter and Space, let Tab work naturally
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleToggleFavorite();
+        }
+      }}
       className={`text-white ${className}`}
-      aria-label={isLocationFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={
+        isLocationFavorite
+          ? `Remove ${location.name} from favorites`
+          : `Add ${location.name} to favorites`
+      }
+      aria-pressed={isLocationFavorite}
+      disabled={isProcessing}
     >
       <motion.div
         whileTap={{ scale: 0.8 }}
