@@ -115,6 +115,9 @@ export function FavoritesCarousel() {
       if (favoriteWeatherData[index]) {
         const { lat, lon } = favoriteWeatherData[index].location;
         fetchByCoordinates(lat, lon);
+        // Update URL to reflect the selected location
+        const locationParam = `${lat},${lon}`;
+        router.push(`/?location=${encodeURIComponent(locationParam)}`);
       }
     }
   };

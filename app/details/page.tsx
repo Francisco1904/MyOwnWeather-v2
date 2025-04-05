@@ -12,6 +12,7 @@ import ForecastCard from '@/components/weather/ForecastCard';
 import { formatDate } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { FavoriteStar } from '@/components/weather/FavoriteStar';
+import { useSearchParams } from 'next/navigation';
 
 // Custom icon component to match the style in the screenshot
 function WeatherIcon({
@@ -49,8 +50,12 @@ export default function DetailedForecast() {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const { theme } = useTheme();
   const { unit, isReady } = useTemperature();
+  const searchParams = useSearchParams();
+  const locationParam = searchParams.get('location');
 
-  const { currentWeather, forecast, isLoading, error, refetch } = useWeather();
+  const { currentWeather, forecast, isLoading, error, refetch } = useWeather(
+    locationParam || undefined
+  );
 
   // Helper function to get temperature in the selected unit
   const getTemp = (celsius: number, fahrenheit: number) => {

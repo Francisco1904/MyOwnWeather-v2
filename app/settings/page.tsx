@@ -111,6 +111,7 @@ export default function SettingsPage() {
                   onCheckedChange={checked => setTheme(checked ? 'dark' : 'light')}
                   className="data-[state=checked]:bg-slate-700"
                   ariaLabel="Toggle dark mode"
+                  isThemeToggle={true}
                 />
                 <Moon className="h-4 w-4" />
               </div>
