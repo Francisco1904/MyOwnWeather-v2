@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import weatherService from '@/lib/services/weatherApi';
+import weatherService, { WeatherApiError } from '@/lib/services/weatherApi';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -29,6 +29,17 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error fetching weather data:', error);
+
+    if (error instanceof WeatherApiError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          statusCode: error.statusCode || 500,
+        },
+        { status: error.statusCode || 500 }
+      );
+    }
+
     return NextResponse.json({ error: 'Failed to fetch weather data' }, { status: 500 });
   }
 }

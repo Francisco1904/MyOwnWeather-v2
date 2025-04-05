@@ -1,4 +1,15 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+
+// Custom API error class
+export class WeatherApiError extends Error {
+  statusCode?: number;
+
+  constructor(message: string, statusCode?: number) {
+    super(message);
+    this.name = 'WeatherApiError';
+    this.statusCode = statusCode;
+  }
+}
 
 // Base API configuration
 const weatherApi = axios.create({
@@ -7,6 +18,46 @@ const weatherApi = axios.create({
     key: process.env.NEXT_PUBLIC_WEATHER_API_KEY,
   },
 });
+
+// Error handling helper
+const handleApiError = (error: unknown): never => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    const status = axiosError.response?.status;
+
+    // Handle specific error status codes
+    if (status === 401) {
+      throw new WeatherApiError('Invalid API key or unauthorized access', 401);
+    } else if (status === 404) {
+      throw new WeatherApiError('Location not found', 404);
+    } else if (status === 429) {
+      throw new WeatherApiError('API rate limit exceeded. Please try again later', 429);
+    } else if (status && status >= 500) {
+      throw new WeatherApiError('Weather service is currently unavailable', status);
+    } else if (axiosError.code === 'ECONNABORTED') {
+      throw new WeatherApiError('Request timed out. Please try again', 408);
+    } else if (!navigator.onLine || axiosError.message.includes('Network Error')) {
+      throw new WeatherApiError('No internet connection. Please check your network', 0);
+    }
+
+    // Generic error with status code if available
+    const errorMessage = axiosError.response?.data
+      ? typeof axiosError.response.data === 'string'
+        ? axiosError.response.data
+        : JSON.stringify(axiosError.response.data)
+      : 'Failed to fetch weather data';
+
+    throw new WeatherApiError(errorMessage, status);
+  }
+
+  // For non-Axios errors
+  if (error instanceof Error) {
+    throw new WeatherApiError(error.message);
+  }
+
+  // Unknown errors
+  throw new WeatherApiError('An unexpected error occurred');
+};
 
 // Types
 export interface CurrentWeather {
@@ -117,7 +168,7 @@ export const weatherService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching current weather:', error);
-      throw error;
+      return handleApiError(error);
     }
   },
 
@@ -137,7 +188,7 @@ export const weatherService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching forecast:', error);
-      throw error;
+      return handleApiError(error);
     }
   },
 
@@ -153,7 +204,7 @@ export const weatherService = {
       return response.data;
     } catch (error) {
       console.error('Error searching locations:', error);
-      throw error;
+      return handleApiError(error);
     }
   },
 };

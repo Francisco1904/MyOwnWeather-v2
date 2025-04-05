@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TemperatureProvider } from '@/lib/context/temperature-context';
 import { AuthProvider } from '@/lib/context/auth-context';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -30,7 +31,9 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     <AuthProvider>
       <TemperatureProvider>
         <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
-          <div className="has-bottom-nav w-full max-w-md pt-4">{children}</div>
+          <div className="has-bottom-nav w-full max-w-md pt-4">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </div>
 
           <BottomNav pathname={pathname} />
         </div>

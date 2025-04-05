@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { FavoriteStar } from '@/components/weather/FavoriteStar';
 import { useTheme } from 'next-themes';
+import ApiError from '@/components/ui/api-error';
 
 // Custom icon component to match the style in the screenshot
 function WeatherIcon({
@@ -96,20 +97,16 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
 
   if (error || !weatherData) {
     return (
-      <div className="weather-card text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
-          <CloudSun className="h-10 w-10 text-white" />
-        </div>
-        <h2 className="mb-2 text-xl font-semibold">Weather Unavailable</h2>
-        <p className="mb-4 text-sm opacity-90">
-          {error?.message === 'Failed to fetch'
+      <ApiError
+        error={error}
+        message={
+          error?.message === 'Failed to fetch'
             ? 'Network connection issue. Please check your internet connection.'
-            : error?.message || 'Unable to fetch weather data right now.'}
-        </p>
-        <Button onClick={() => window.location.reload()} className="bg-white/20 hover:bg-white/30">
-          Retry
-        </Button>
-      </div>
+            : error?.message || 'Unable to fetch weather data right now.'
+        }
+        className="weather-card"
+        retry={() => window.location.reload()}
+      />
     );
   }
 
