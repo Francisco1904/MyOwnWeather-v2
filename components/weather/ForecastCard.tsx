@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -13,11 +13,11 @@ import {
   Sunset,
 } from 'lucide-react';
 import { ForecastDay } from '@/lib/services/weatherApi';
-import { formatDate } from '@/lib/utils';
+import { formatDate, handleKeyboardActivation } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
 
 // Custom icon component to match the style in the screenshot
-function WeatherIcon({
+const WeatherIcon = memo(function WeatherIcon({
   icon,
   className = '',
   size = 24,
@@ -34,22 +34,39 @@ function WeatherIcon({
       {icon}
     </div>
   );
-}
+});
+
+WeatherIcon.displayName = 'WeatherIcon';
 
 interface ForecastCardProps {
   day: ForecastDay;
   isExpanded: boolean;
   onToggle: () => void;
-  index: number;
+  index?: number;
+  unit: string;
 }
 
-export default function ForecastCard({ day, isExpanded, onToggle, index }: ForecastCardProps) {
-  const { unit, isReady } = useTemperature();
+const ForecastCard = memo(function ForecastCard({
+  day,
+  isExpanded,
+  onToggle,
+  index = 0,
+  unit,
+}: ForecastCardProps) {
+  const { isReady } = useTemperature();
   const { date, day: dayData } = day;
-  const formattedDate = formatDate(date, isExpanded ? 'EEEE, d MMMM' : 'EEE, d MMM');
+
+  // Memoize formatted date to prevent recalculation
+  const formattedDate = useMemo(
+    () => formatDate(date, isExpanded ? 'EEEE, d MMMM' : 'EEE, d MMM'),
+    [date, isExpanded]
+  );
+
+  // Memoize icon component for better performance
+  const weatherIcon = useMemo(() => getIcon(dayData.condition.text), [dayData.condition.text]);
 
   // Get appropriate icon based on condition
-  const getIcon = (condition: string) => {
+  function getIcon(condition: string) {
     const lowerCondition = condition.toLowerCase();
     if (lowerCondition.includes('rain') || lowerCondition.includes('drizzle')) {
       return <CloudRain className="h-5 w-5 text-white" />;
@@ -58,12 +75,37 @@ export default function ForecastCard({ day, isExpanded, onToggle, index }: Forec
     } else {
       return <Sun className="h-5 w-5 text-white" />;
     }
-  };
+  }
 
   // Helper function to get temperature in the selected unit
-  const getTemp = (celsius: number, fahrenheit: number) => {
-    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
-  };
+  const getTemp = useCallback(
+    (celsius: number, fahrenheit: number) => {
+      return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
+    },
+    [unit]
+  );
+
+  // Handler for keyboard events
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggle();
+      }
+    },
+    [onToggle]
+  );
+
+  // Memoized temperature displays
+  const maxTemp = useMemo(
+    () => getTemp(dayData.maxtemp_c, dayData.maxtemp_f),
+    [dayData.maxtemp_c, dayData.maxtemp_f, getTemp]
+  );
+
+  const minTemp = useMemo(
+    () => getTemp(dayData.mintemp_c, dayData.mintemp_f),
+    [dayData.mintemp_c, dayData.mintemp_f, getTemp]
+  );
 
   return (
     <motion.div
@@ -79,10 +121,10 @@ export default function ForecastCard({ day, isExpanded, onToggle, index }: Forec
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        onKeyDown={e => e.key === 'Enter' && onToggle()}
+        onKeyDown={handleKeyDown}
       >
         <div className="flex items-center">
-          <WeatherIcon icon={getIcon(dayData.condition.text)} />
+          <WeatherIcon icon={weatherIcon} />
           <div className="ml-3">
             <p className={`font-medium ${isExpanded ? 'text-lg' : ''}`}>{formattedDate}</p>
             <p className="text-sm opacity-80">{dayData.condition.text}</p>
@@ -91,9 +133,9 @@ export default function ForecastCard({ day, isExpanded, onToggle, index }: Forec
 
         <div className="flex items-center">
           <p className="mr-4 text-xl font-bold">
-            {getTemp(dayData.maxtemp_c, dayData.maxtemp_f)}°{isReady ? unit : ''}
+            {maxTemp}°{isReady ? unit : ''}
             <span className="ml-1 text-sm opacity-70">
-              {getTemp(dayData.mintemp_c, dayData.mintemp_f)}°{isReady ? unit : ''}
+              {minTemp}°{isReady ? unit : ''}
             </span>
           </p>
           <div className="rounded-full bg-white/10 p-1">
@@ -164,4 +206,8 @@ export default function ForecastCard({ day, isExpanded, onToggle, index }: Forec
       )}
     </motion.div>
   );
-}
+});
+
+ForecastCard.displayName = 'ForecastCard';
+
+export default ForecastCard;

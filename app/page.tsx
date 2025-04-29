@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, MapPin } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { useWeather } from '@/hooks/useWeather';
-import { WeatherCard } from '@/components/weather/WeatherCard';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { ForecastData, CurrentWeather } from '@/lib/services/weatherApi';
 import { FavoritesCarousel } from '@/components/weather/FavoritesCarousel';
 import { useAuth } from '@/lib/context/auth-context';
+import { WeatherCard } from '@/components/weather/WeatherCard';
+import { useWeatherData } from '@/hooks/useWeatherQueries';
+import { toast } from '@/hooks/use-toast';
 
 export default function HomePage() {
   const { theme } = useTheme();
@@ -19,23 +20,47 @@ export default function HomePage() {
   const locationParam = searchParams.get('location');
   const { isAuthenticated } = useAuth();
 
-  const {
-    currentWeather,
-    forecast,
-    isLoading,
-    error,
-    setLocation,
-    refetch,
-    getUserLocation,
-    location,
-  } = useWeather(locationParam || undefined);
+  const { currentWeather, forecast, isLoading, isError, error, refetch, userLocation } =
+    useWeatherData(locationParam || undefined);
 
-  // Update the weather data when the location query parameter changes
-  useEffect(() => {
-    if (locationParam && locationParam !== location) {
-      setLocation(locationParam);
+  const refreshUserLocation = () => {
+    // Check for geolocation API
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      toast({
+        title: 'Getting your location',
+        description: 'Please allow location access if prompted',
+      });
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          const locationString = `${latitude},${longitude}`;
+
+          // Redirect to the home page with the new location parameter
+          window.location.href = `/?location=${encodeURIComponent(locationString)}`;
+
+          toast({
+            title: 'Location updated',
+            description: 'Weather data for your current location',
+          });
+        },
+        error => {
+          console.error('Geolocation error:', error);
+          toast({
+            title: 'Location error',
+            description: 'Could not get your location. Using default location instead.',
+            variant: 'destructive',
+          });
+        }
+      );
+    } else {
+      toast({
+        title: 'Geolocation not supported',
+        description: 'Your browser does not support geolocation',
+        variant: 'destructive',
+      });
     }
-  }, [locationParam, setLocation, location]);
+  };
 
   return (
     <>
@@ -49,17 +74,34 @@ export default function HomePage() {
           Weather
         </motion.h1>
         <div className="flex-1"></div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="back-button absolute right-0"
-          aria-label="Refresh weather data"
-        >
-          <RefreshCcw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
-          <span className="sr-only">Refresh</span>
-        </Button>
+        <div className="absolute right-0 flex space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={refreshUserLocation}
+            disabled={isLoading}
+            className="back-button"
+            aria-label="Get my location"
+            title="Get my location"
+          >
+            <MapPin className="h-5 w-5" aria-hidden="true" />
+            <span className="sr-only">Get my location</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="back-button"
+            aria-label="Refresh weather data"
+          >
+            <RefreshCcw
+              className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
+              aria-hidden="true"
+            />
+            <span className="sr-only">Refresh</span>
+          </Button>
+        </div>
       </header>
 
       <motion.div
@@ -68,12 +110,12 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        {/* Weather Card (Already using the weather-card class with appropriate styling) */}
+        {/* Weather Card */}
         <WeatherCard
-          weatherData={currentWeather}
-          forecast={forecast || undefined}
+          weatherData={currentWeather || null}
+          forecast={forecast}
           isLoading={isLoading}
-          error={error}
+          error={isError ? new Error('Failed to fetch weather data') : null}
         />
 
         {currentWeather && forecast && !isLoading && (
@@ -82,7 +124,9 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Link href="/details">
+            <Link
+              href={`/details?location=${locationParam ? encodeURIComponent(locationParam) : ''}`}
+            >
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

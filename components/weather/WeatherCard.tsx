@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Search, Cloud, CloudSun, Droplets, Wind } from 'lucide-react';
@@ -12,9 +12,10 @@ import Link from 'next/link';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { FavoriteStar } from '@/components/weather/FavoriteStar';
 import { useTheme } from 'next-themes';
+import ApiError from '@/components/ui/api-error';
 
 // Custom icon component to match the style in the screenshot
-function WeatherIcon({
+const WeatherIcon = memo(function WeatherIcon({
   icon,
   className = '',
   size = 24,
@@ -31,7 +32,9 @@ function WeatherIcon({
       {icon}
     </div>
   );
-}
+});
+
+WeatherIcon.displayName = 'WeatherIcon';
 
 // Type definitions for forecast data
 interface HourlyForecast {
@@ -60,15 +63,175 @@ interface WeatherCardProps {
   error: Error | null;
 }
 
-export function WeatherCard({ weatherData, forecast, isLoading, error }: WeatherCardProps) {
+const HourlyForecastItem = memo(function HourlyForecastItem({
+  hour,
+  index,
+  getTemp,
+  unit,
+  isReady,
+}: {
+  hour: HourlyForecast;
+  index: number;
+  getTemp: (celsius: number, fahrenheit: number | undefined) => number;
+  unit: string;
+  isReady: boolean;
+}) {
+  const hourTime = new Date(hour.time);
+  const displayTime = index === 0 ? 'Now' : hourTime.getHours() + ':00';
+
+  const weatherIcon = useMemo(() => {
+    if (hour.condition.text.toLowerCase().includes('rain')) {
+      return <Droplets className="h-4 w-4 text-white" aria-hidden="true" />;
+    } else if (hour.condition.text.toLowerCase().includes('cloud')) {
+      return <Cloud className="h-4 w-4 text-white" aria-hidden="true" />;
+    } else {
+      return <CloudSun className="h-4 w-4 text-white" aria-hidden="true" />;
+    }
+  }, [hour.condition.text]);
+
+  return (
+    <div className="flex flex-col items-center rounded-xl bg-white/10 p-2 backdrop-blur-sm transition-all hover:bg-white/15">
+      <span className="text-xs">{displayTime}</span>
+      {/* Render custom icon instead of API image */}
+      <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+        {weatherIcon}
+      </div>
+      <span className="text-sm font-medium">
+        {getTemp(hour.temp_c, hour.temp_f)}°{isReady ? unit : ''}
+      </span>
+    </div>
+  );
+});
+
+HourlyForecastItem.displayName = 'HourlyForecastItem';
+
+export const WeatherCard = memo(function WeatherCard({
+  weatherData,
+  forecast,
+  isLoading,
+  error,
+}: WeatherCardProps) {
+  // Always call all hooks first
   const { unit, isReady } = useTemperature();
   const { theme } = useTheme();
 
   // Helper function to get temperature in the selected unit
-  const getTemp = (celsius: number, fahrenheit: number | undefined) => {
-    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit || celsius * 1.8 + 32);
-  };
+  const getTemp = useCallback(
+    (celsius: number = 0, fahrenheit: number | undefined = undefined) => {
+      return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit || celsius * 1.8 + 32);
+    },
+    [unit]
+  );
 
+  // Always extract data safely, even if weatherData is null/undefined
+  const weatherConditionText = weatherData?.current?.condition?.text?.toLowerCase() || '';
+  const locationLocaltime = weatherData?.location?.localtime || '';
+  const currentTempC = weatherData?.current?.temp_c || 0;
+  const currentTempF = weatherData?.current?.temp_f || 0;
+  const feelsLikeC = weatherData?.current?.feelslike_c || 0;
+  const feelsLikeF = weatherData?.current?.feelslike_f || 0;
+
+  // Memoize the weather condition icon based on current condition
+  const weatherIcon = useMemo(() => {
+    if (!weatherConditionText)
+      return <CloudSun className="h-32 w-32 text-white" aria-hidden="true" />;
+
+    if (weatherConditionText.includes('cloud')) {
+      return <Cloud className="h-32 w-32 text-white" aria-hidden="true" />;
+    } else if (weatherConditionText.includes('sun') || weatherConditionText.includes('clear')) {
+      return (
+        <div
+          className="flex h-24 w-24 items-center justify-center rounded-full bg-yellow-300"
+          aria-hidden="true"
+        >
+          <span className="sr-only">Sun</span>
+        </div>
+      );
+    } else {
+      return <CloudSun className="h-32 w-32 text-white" aria-hidden="true" />;
+    }
+  }, [weatherConditionText]);
+
+  // Memoize hourly forecast data to prevent recalculation on re-renders
+  const displayHourly = useMemo(() => {
+    if (!forecast?.forecast?.forecastday?.[0]?.hour) return [];
+
+    const hourlyData = forecast.forecast.forecastday[0].hour;
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Filter to show only future hours
+    const filteredHourly = hourlyData.filter((hour: HourlyForecast) => {
+      try {
+        const hourTime = new Date(hour.time);
+        // Using >= might filter out all hours if currentHour matches exactly with the last hour
+        // So we'll check if the hour is the same or later
+        return hourTime.getHours() >= currentHour;
+      } catch (error) {
+        console.error('Error parsing hour time:', error, hour);
+        return false;
+      }
+    });
+
+    // Add logging to debug the issue
+    console.log('Current hour:', currentHour);
+    console.log('Filtered hourly count:', filteredHourly.length);
+
+    // If we don't have enough hours left today, add some from tomorrow
+    let result = filteredHourly;
+    if (filteredHourly.length < 4 && forecast.forecast.forecastday.length > 1) {
+      const tomorrowHours = forecast.forecast.forecastday[1].hour.slice(
+        0,
+        4 - filteredHourly.length
+      );
+      result = [...filteredHourly, ...tomorrowHours];
+      console.log('Added tomorrow hours, total:', result.length);
+    }
+
+    // Make sure we always return at least the current hour if available
+    if (result.length === 0 && hourlyData.length > 0) {
+      const nearestHour = hourlyData.reduce((prev, curr) => {
+        const prevHour = new Date(prev.time).getHours();
+        const currHour = new Date(curr.time).getHours();
+        return Math.abs(currHour - currentHour) < Math.abs(prevHour - currentHour) ? curr : prev;
+      });
+      result = [nearestHour];
+      console.log('No hours matched, using nearest hour');
+    }
+
+    // Show up to 4 hours
+    return result.slice(0, 4);
+  }, [forecast?.forecast?.forecastday]);
+
+  // Memoize current temperature to avoid recalculations
+  const currentTemp = useMemo(
+    () => getTemp(currentTempC, currentTempF),
+    [currentTempC, currentTempF, getTemp]
+  );
+
+  const feelsLikeTemp = useMemo(
+    () => getTemp(feelsLikeC, feelsLikeF),
+    [feelsLikeC, feelsLikeF, getTemp]
+  );
+
+  const minTemp = useMemo(
+    () => getTemp(feelsLikeC - 5, feelsLikeF - 9),
+    [feelsLikeC, feelsLikeF, getTemp]
+  );
+
+  const formattedDate = useMemo(() => {
+    if (!locationLocaltime) {
+      return 'Today'; // Default fallback
+    }
+    try {
+      return formatDate(locationLocaltime, 'EEEE, MMM d');
+    } catch (error) {
+      console.error('Error formatting date in WeatherCard:', error);
+      return 'Today'; // Fallback if date formatting fails
+    }
+  }, [locationLocaltime]);
+
+  // Now we can have conditional returns because all hooks have been called
   if (isLoading) {
     return (
       <div className="weather-card animate-pulse">
@@ -96,38 +259,18 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
 
   if (error || !weatherData) {
     return (
-      <div className="weather-card text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
-          <CloudSun className="h-10 w-10 text-white" />
-        </div>
-        <h2 className="mb-2 text-xl font-semibold">Weather Unavailable</h2>
-        <p className="mb-4 text-sm opacity-90">
-          {error?.message === 'Failed to fetch'
+      <ApiError
+        error={error}
+        message={
+          error?.message === 'Failed to fetch'
             ? 'Network connection issue. Please check your internet connection.'
-            : error?.message || 'Unable to fetch weather data right now.'}
-        </p>
-        <Button onClick={() => window.location.reload()} className="bg-white/20 hover:bg-white/30">
-          Retry
-        </Button>
-      </div>
+            : error?.message || 'Unable to fetch weather data right now.'
+        }
+        className="weather-card"
+        retry={() => window.location.reload()}
+      />
     );
   }
-
-  // Get the hourly forecast data if available
-  const hourlyData = forecast?.forecast?.forecastday?.[0]?.hour || [];
-
-  // Get the current hour to filter hourly data
-  const now = new Date();
-  const currentHour = now.getHours();
-
-  // Filter to show only future hours
-  const filteredHourly = hourlyData.filter((hour: HourlyForecast) => {
-    const hourTime = new Date(hour.time);
-    return hourTime.getHours() >= currentHour;
-  });
-
-  // Show only next 3-4 hours on the home page
-  const displayHourly = filteredHourly.slice(0, 4);
 
   const { location, current } = weatherData;
 
@@ -138,7 +281,7 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
           <h2 className="text-2xl font-bold">
             {location.name}, {location.country}
           </h2>
-          <p className="text-sm opacity-90">{formatDate(location.localtime, 'EEEE, MMM d')}</p>
+          <p className="text-sm opacity-90">{formattedDate}</p>
         </div>
         <div className="flex items-center space-x-2">
           <FavoriteStar
@@ -163,35 +306,21 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
       </div>
 
       <div className="mt-6 flex flex-col items-center">
-        {/* Use custom weather icon based on condition */}
-        <div className="relative flex h-32 w-32 items-center justify-center">
-          {current?.condition?.text?.toLowerCase().includes('cloud') ? (
-            <Cloud className="h-32 w-32 text-white" aria-hidden="true" />
-          ) : current?.condition?.text?.toLowerCase().includes('sun') ||
-            current?.condition?.text?.toLowerCase().includes('clear') ? (
-            <div
-              className="flex h-24 w-24 items-center justify-center rounded-full bg-yellow-300"
-              aria-hidden="true"
-            >
-              <span className="sr-only">Sun</span>
-            </div>
-          ) : (
-            <CloudSun className="h-32 w-32 text-white" aria-hidden="true" />
-          )}
-        </div>
+        {/* Weather icon based on condition */}
+        <div className="relative flex h-32 w-32 items-center justify-center">{weatherIcon}</div>
 
         <h1 className="mt-2 text-[80px] font-bold leading-none">
-          {getTemp(current.temp_c, current.temp_f)}°{isReady ? unit : ''}
+          {currentTemp}°{isReady ? unit : ''}
         </h1>
 
         <p className="text-xl font-medium">{current.condition.text}</p>
 
         <div className="mt-2 flex items-center space-x-4">
           <span>
-            Max: {getTemp(current.feelslike_c, current.feelslike_f)}°{isReady ? unit : ''}
+            Max: {feelsLikeTemp}°{isReady ? unit : ''}
           </span>
           <span>
-            Min: {getTemp(current.feelslike_c - 5, current.feelslike_f - 9)}°{isReady ? unit : ''}
+            Min: {minTemp}°{isReady ? unit : ''}
           </span>
         </div>
       </div>
@@ -217,7 +346,7 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
           <WeatherIcon icon={<CloudSun className="h-5 w-5 text-white" aria-hidden="true" />} />
           <p className="mt-2 text-xs opacity-80">Feels Like</p>
           <p className="font-bold">
-            {getTemp(current.feelslike_c, current.feelslike_f)}°{isReady ? unit : ''}
+            {feelsLikeTemp}°{isReady ? unit : ''}
           </p>
         </div>
       </div>
@@ -226,35 +355,21 @@ export function WeatherCard({ weatherData, forecast, isLoading, error }: Weather
         <div className="mt-6">
           <p className="mb-2 text-sm">Hourly Forecast</p>
           <div className="grid grid-cols-4 gap-2">
-            {displayHourly.map((hour: HourlyForecast, index: number) => {
-              const hourTime = new Date(hour.time);
-              const displayTime = index === 0 ? 'Now' : hourTime.getHours() + ':00';
-
-              return (
-                <div
-                  key={index}
-                  className="flex flex-col items-center rounded-xl bg-white/10 p-2 backdrop-blur-sm transition-all hover:bg-white/15"
-                >
-                  <span className="text-xs">{displayTime}</span>
-                  {/* Render custom icon instead of API image */}
-                  <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-                    {hour.condition.text.toLowerCase().includes('rain') ? (
-                      <Droplets className="h-4 w-4 text-white" aria-hidden="true" />
-                    ) : hour.condition.text.toLowerCase().includes('cloud') ? (
-                      <Cloud className="h-4 w-4 text-white" aria-hidden="true" />
-                    ) : (
-                      <CloudSun className="h-4 w-4 text-white" aria-hidden="true" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium">
-                    {getTemp(hour.temp_c, hour.temp_f)}°{isReady ? unit : ''}
-                  </span>
-                </div>
-              );
-            })}
+            {displayHourly.map((hour: HourlyForecast, index: number) => (
+              <HourlyForecastItem
+                key={index}
+                hour={hour}
+                index={index}
+                getTemp={getTemp}
+                unit={unit}
+                isReady={isReady}
+              />
+            ))}
           </div>
         </div>
       )}
     </div>
   );
-}
+});
+
+WeatherCard.displayName = 'WeatherCard';

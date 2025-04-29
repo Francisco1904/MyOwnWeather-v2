@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Cloud, CloudSun, Droplets, Wind, MapPin } from 'lucide-react';
@@ -9,6 +10,7 @@ import { CurrentWeather } from '@/lib/services/weatherApi';
 import { formatDate } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { useTheme } from 'next-themes';
+import { handleKeyboardActivation } from '@/lib/utils';
 
 // Define types
 interface FavoriteCardProps {
@@ -56,6 +58,17 @@ export function FavoriteCard({
         whileHover={{ scale: isActive ? 1.02 : 1 }}
         whileTap={{ scale: isActive ? 0.98 : 1 }}
         onClick={() => isActive && onSelect()}
+        onKeyDown={e => {
+          // Only handle Enter and Space, let Tab work naturally
+          if (isActive && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+        tabIndex={isActive ? 0 : -1}
+        role="button"
+        aria-label={`Loading weather for ${location.name}`}
+        aria-busy="true"
         style={{
           cursor: isActive ? 'pointer' : 'default',
           width: isSelected ? '100%' : '240px',
@@ -89,6 +102,16 @@ export function FavoriteCard({
         whileHover={{ scale: isActive ? 1.02 : 1 }}
         whileTap={{ scale: isActive ? 0.98 : 1 }}
         onClick={() => isActive && onSelect()}
+        onKeyDown={e => {
+          // Only handle Enter and Space, let Tab work naturally
+          if (isActive && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+        tabIndex={isActive ? 0 : -1}
+        role="button"
+        aria-label={`Weather unavailable for ${location.name}. ${error?.message || 'Data unavailable'}`}
         style={{
           cursor: isActive ? 'pointer' : 'default',
           width: isSelected ? '100%' : '240px',
@@ -97,7 +120,7 @@ export function FavoriteCard({
         }}
       >
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
-          <CloudSun className="h-8 w-8 text-white" />
+          <CloudSun className="h-8 w-8 text-white" aria-hidden="true" />
         </div>
         <h3 className="mb-1 font-medium">{location.name}</h3>
         <p className="text-xs opacity-80">Data unavailable</p>
@@ -120,6 +143,17 @@ export function FavoriteCard({
       whileHover={{ scale: isActive ? 1.02 : 1 }}
       whileTap={{ scale: isActive ? 0.98 : 1 }}
       onClick={() => isActive && onSelect()}
+      onKeyDown={e => {
+        // Only handle Enter and Space, let Tab work naturally
+        if (isActive && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      tabIndex={isActive ? 0 : -1}
+      role="button"
+      aria-label={`Weather for ${location.name}, ${location.country}. ${current.temp_c} degrees Celsius, ${current.condition.text}`}
+      aria-pressed={isSelected}
       style={{
         cursor: isActive ? 'pointer' : 'default',
         width: isSelected ? '100%' : '240px',
@@ -130,7 +164,7 @@ export function FavoriteCard({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center">
-            <MapPin className="mr-1 h-4 w-4" />
+            <MapPin className="mr-1 h-4 w-4" aria-hidden="true" />
             <h3 className="text-lg font-bold">{location.name}</h3>
           </div>
           <p className="text-xs opacity-80">{location.country}</p>
@@ -139,7 +173,7 @@ export function FavoriteCard({
 
       <div className="mt-3 flex flex-col items-center">
         {/* Weather icon based on condition */}
-        <div className="relative flex h-16 w-16 items-center justify-center">
+        <div className="relative flex h-16 w-16 items-center justify-center" aria-hidden="true">
           {current?.condition?.text?.toLowerCase().includes('cloud') ? (
             <Cloud className="h-16 w-16 text-white" aria-hidden="true" />
           ) : current?.condition?.text?.toLowerCase().includes('sun') ||

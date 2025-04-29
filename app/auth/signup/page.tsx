@@ -147,20 +147,25 @@ export default function SignupPage() {
               className="mb-6 flex items-start rounded-lg border border-red-500/30 bg-red-500/20 p-3"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
+              role="alert"
+              aria-live="assertive"
             >
-              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" />
+              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               <p>{error}</p>
             </motion.div>
           )}
 
-          <form onSubmit={handleSignup} className="space-y-5">
+          <form onSubmit={handleSignup} className="space-y-5" noValidate>
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium">
                 Full Name
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <User className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <User className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="name"
@@ -170,6 +175,7 @@ export default function SignupPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="John Doe"
+                  aria-required="true"
                 />
               </div>
             </div>
@@ -179,8 +185,11 @@ export default function SignupPage() {
                 Email
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <Mail className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="email"
@@ -190,6 +199,8 @@ export default function SignupPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="your.email@example.com"
+                  aria-required="true"
+                  aria-invalid={!!error}
                 />
               </div>
             </div>
@@ -199,8 +210,11 @@ export default function SignupPage() {
                 Password
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <Lock className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="password"
@@ -210,29 +224,45 @@ export default function SignupPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-10 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
+                  aria-required="true"
+                  aria-describedby="password-requirements"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
+                    <EyeOff
+                      className="h-5 w-5 text-white/70 transition-colors hover:text-white"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Eye className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
+                    <Eye
+                      className="h-5 w-5 text-white/70 transition-colors hover:text-white"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </div>
 
               {/* Password strength indicator */}
               {password.length > 0 && (
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 space-y-2" id="password-requirements" aria-live="polite">
                   <div className="flex items-center justify-between">
                     <span className="text-xs">Password strength: {getPasswordStrengthLabel()}</span>
                     <span className="text-xs">{passwordStrength}/5</span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-white/10"
+                    role="progressbar"
+                    aria-valuenow={passwordStrength}
+                    aria-valuemin={0}
+                    aria-valuemax={5}
+                    aria-label="Password strength"
+                  >
                     <div
                       className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
                       style={{ width: `${(passwordStrength / 5) * 100}%` }}
@@ -257,8 +287,11 @@ export default function SignupPage() {
                 Confirm Password
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <Lock className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -268,10 +301,19 @@ export default function SignupPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
+                  aria-required="true"
+                  aria-invalid={confirmPassword !== '' && password !== confirmPassword}
+                  aria-describedby={
+                    confirmPassword !== '' && password !== confirmPassword
+                      ? 'confirm-password-error'
+                      : undefined
+                  }
                 />
               </div>
               {confirmPassword && password !== confirmPassword && (
-                <p className="mt-1 text-xs text-red-300">Passwords do not match</p>
+                <p className="mt-1 text-xs text-red-300" id="confirm-password-error" role="alert">
+                  Passwords do not match
+                </p>
               )}
             </div>
 
@@ -279,11 +321,12 @@ export default function SignupPage() {
               type="submit"
               disabled={isLoading}
               className="flex w-full items-center justify-center rounded-xl bg-white/20 py-3 font-medium transition-all duration-300 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50"
+              aria-busy={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creating account...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+                  <span>Creating account...</span>
                 </>
               ) : (
                 'Create Account'
@@ -327,13 +370,16 @@ export default function SignupPage() {
 // Password requirement component
 function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
   return (
-    <li className="flex items-center">
+    <li className="flex items-center" aria-live="polite">
       {met ? (
-        <Check className="mr-2 h-3.5 w-3.5 text-green-400" />
+        <Check className="mr-2 h-3.5 w-3.5 text-green-400" aria-hidden="true" />
       ) : (
-        <div className="mr-2 h-3.5 w-3.5 rounded-full border border-white/30" />
+        <div className="mr-2 h-3.5 w-3.5 rounded-full border border-white/30" aria-hidden="true" />
       )}
-      <span className={met ? 'text-white' : 'text-white/50'}>{text}</span>
+      <span className={met ? 'text-white' : 'text-white/50'}>
+        <span className="sr-only">{met ? 'Requirement met: ' : 'Requirement not met: '}</span>
+        {text}
+      </span>
     </li>
   );
 }

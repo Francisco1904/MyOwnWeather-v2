@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Home, BarChart2, Search, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TemperatureProvider } from '@/lib/context/temperature-context';
 import { AuthProvider } from '@/lib/context/auth-context';
+import ErrorBoundary from '@/components/ui/error-boundary';
+import { ReactQueryProvider } from '@/lib/providers/query-provider';
+import RateLimitBanner from '@/components/ui/rate-limit-banner';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { toast } = useToast();
 
   // Add viewport meta tag to handle safe areas on iOS
   useEffect(() => {
@@ -26,16 +31,37 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
   }, []);
 
-  return (
-    <AuthProvider>
-      <TemperatureProvider>
-        <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
-          <div className="has-bottom-nav w-full max-w-md pt-4">{children}</div>
+  // Handle refresh when rate limit banner refresh button is clicked
+  const handleRefresh = useCallback(async () => {
+    // We'll just show a toast notification for now
+    // In a real app, you might want to trigger a data refresh
+    toast({
+      title: 'Refreshing data',
+      description: 'Attempting to refresh weather data...',
+      duration: 2000,
+    });
 
-          <BottomNav pathname={pathname} />
-        </div>
-      </TemperatureProvider>
-    </AuthProvider>
+    // Wait a moment to simulate a refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }, [toast]);
+
+  return (
+    <ReactQueryProvider>
+      <AuthProvider>
+        <TemperatureProvider>
+          <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+            {/* Rate limit banner displays at the top when needed */}
+            <RateLimitBanner className="mb-4 w-full max-w-md" onRefresh={handleRefresh} />
+
+            <div className="has-bottom-nav w-full max-w-md pt-4">
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </div>
+
+            <BottomNav pathname={pathname} />
+          </div>
+        </TemperatureProvider>
+      </AuthProvider>
+    </ReactQueryProvider>
   );
 }
 
