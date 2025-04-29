@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState, useCallback, memo } from 'react';
-import { MapPin, Trash2, X } from 'lucide-react';
+import { MapPin, Trash2, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFavorites, FavoriteLocation } from '@/hooks/useFavorites';
 import { Button } from '@/components/ui/button';
@@ -7,14 +9,15 @@ import { useRouter } from 'next/navigation';
 import { useWeather } from '@/hooks/useWeather';
 import { toast } from '@/hooks/use-toast';
 
-export function FavoritesList() {
+// Wrap the component with memo for performance optimization
+const FavoritesList = memo(function FavoritesList() {
   const { favorites, loading, removeFavorite, refreshFavorites } = useFavorites();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
   const { fetchByCoordinates } = useWeather();
 
-  // Function to refresh favorites data
-  const handleRefresh = async () => {
+  // Memoize the refresh handler to prevent unnecessary re-creation
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await refreshFavorites();
     setIsRefreshing(false);
@@ -25,7 +28,7 @@ export function FavoritesList() {
       variant: 'success',
       duration: 3000,
     });
-  };
+  }, [refreshFavorites]);
 
   if (loading) {
     return (
@@ -55,20 +58,7 @@ export function FavoritesList() {
           className="h-8 w-8 p-0 text-white"
           aria-label="Refresh favorites"
         >
-          <svg
-            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         </Button>
       </div>
       <div className="max-h-60 overflow-y-auto rounded-xl bg-white/10 p-2 pb-4">
@@ -86,7 +76,7 @@ export function FavoritesList() {
       </div>
     </div>
   );
-}
+});
 
 interface FavoriteItemProps {
   favorite: FavoriteLocation;
@@ -100,18 +90,22 @@ function FavoriteItem({ favorite, onRemove, onSelect, index }: FavoriteItemProps
   const router = useRouter();
   const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleRemove = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Memoize handlers to prevent unnecessary re-creation
+  const handleRemove = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    setIsRemoving(true);
+      setIsRemoving(true);
 
-    try {
-      await onRemove(favorite.id, favorite.name);
-    } finally {
-      setIsRemoving(false);
-    }
-  };
+      try {
+        await onRemove(favorite.id, favorite.name);
+      } finally {
+        setIsRemoving(false);
+      }
+    },
+    [favorite.id, favorite.name, onRemove]
+  );
 
   const handleClick = useCallback(() => {
     onSelect(favorite.lat, favorite.lon);
@@ -158,7 +152,13 @@ function FavoriteItem({ favorite, onRemove, onSelect, index }: FavoriteItemProps
   );
 }
 
-// Memoize the FavoriteItem for better performance
+// Memoize the FavoriteItem for better performance with custom comparison function
 const MemoizedFavoriteItem = memo(FavoriteItem, (prevProps, nextProps) => {
-  return prevProps.favorite.id === nextProps.favorite.id;
+  return prevProps.favorite.id === nextProps.favorite.id && prevProps.index === nextProps.index;
 });
+
+// Add display name for better debugging
+FavoritesList.displayName = 'FavoritesList';
+MemoizedFavoriteItem.displayName = 'MemoizedFavoriteItem';
+
+export { FavoritesList };

@@ -224,15 +224,17 @@
 /* Base section header styling (without iOS-specific padding) */
 .section-header {
   @apply relative mb-6 flex items-center;
-  padding-top: 16px;
+  padding-top: 16px; /* Add consistent 16px top padding regardless of device */
 }
 
-/* Only increase padding for iOS devices with notches */
+/* Apply iOS-specific padding only on real iOS devices with notches */
 @supports (padding-top: env(safe-area-inset-top)) {
-  @media screen and (max-device-width: 932px) {
+  /* Target mobile devices where the notch/status bar matters */
+  @media screen and (max-device-width: 844px) {
     .section-header {
-      /* Add MORE padding specifically for iOS devices */
-      padding-top: calc(24px + env(safe-area-inset-top, 0px));
+      padding-top: calc(
+        16px + env(safe-area-inset-top, 0px)
+      ); /* Add 16px plus the iOS safe area inset */
     }
   }
 }

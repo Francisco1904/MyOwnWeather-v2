@@ -8,14 +8,22 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'MyOwnWeather v2 | Modern Weather App',
-  description: 'A modern weather application showing real-time forecasts with a beautiful UI',
-  keywords: ['weather', 'forecast', 'nextjs', 'react', 'typescript'],
+  title: {
+    default: 'MyOwnWeather | Modern Weather App',
+    template: '%s | MyOwnWeather',
+  },
+  description:
+    'A modern weather application built with Next.js, TypeScript and Firebase. Features real-time forecasts, location search, and user preferences.',
+  keywords: ['weather', 'forecast', 'nextjs', 'react', 'typescript', 'firebase'],
   authors: [{ name: 'Francisco Pontes' }],
+  creator: 'Francisco Pontes',
   openGraph: {
-    title: 'MyOwnWeather v2',
-    description: 'A modern weather application with real-time forecasts',
     type: 'website',
+    title: 'MyOwnWeather App',
+    description: 'A modern weather application with real-time forecasts',
+  },
+  icons: {
+    icon: '/favicon.png',
   },
 };
 

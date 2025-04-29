@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { useFavorites, FavoriteLocation } from '@/hooks/useFavorites';
@@ -9,6 +9,7 @@ import { useWeather } from '@/hooks/useWeather';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFavoritesWeather } from '@/hooks/useWeatherQueries';
 
 export interface WeatherCardData {
   location: {
@@ -22,113 +23,49 @@ export interface WeatherCardData {
   error: Error | null;
 }
 
-export function FavoritesCarousel() {
+// Memoized component to prevent unnecessary re-renders
+const FavoritesCarousel = memo(function FavoritesCarousel() {
   const { favorites, loading: favoritesLoading } = useFavorites();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [favoriteWeatherData, setFavoriteWeatherData] = useState<WeatherCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const { isLoading: weatherLoading, fetchByCoordinates } = useWeather();
+  const { fetchByCoordinates } = useWeather();
   const router = useRouter();
   const isMobile = useMediaQuery('(max-width: 640px)');
 
-  // Function to fetch weather data for a favorite location
-  const fetchFavoriteWeather = async (favorite: FavoriteLocation) => {
-    try {
-      const response = await fetch(`/api/weather?lat=${favorite.lat}&lon=${favorite.lon}`);
+  // Using React Query to fetch weather data for all favorites
+  const favoritesWeatherQuery = useFavoritesWeather(favorites);
+  const favoriteWeatherData = favoritesWeatherQuery.data || [];
+  const isLoading = favoritesWeatherQuery.isLoading || favoritesLoading;
 
-      if (!response.ok) throw new Error('Failed to fetch weather data');
+  // Memoize the handler for selecting a favorite location
+  const handleSelectFavorite = useCallback(
+    (index: number) => {
+      if (selectedIndex === index) {
+        // If already selected, deselect it
+        setSelectedIndex(null);
+      } else {
+        // Otherwise select it and update the current weather
+        setSelectedIndex(index);
 
-      const data = await response.json();
-
-      return {
-        location: {
-          name: favorite.name,
-          country: favorite.country,
-          lat: favorite.lat,
-          lon: favorite.lon,
-        },
-        weatherData: data,
-        isLoading: false,
-        error: null,
-      };
-    } catch (error) {
-      return {
-        location: {
-          name: favorite.name,
-          country: favorite.country,
-          lat: favorite.lat,
-          lon: favorite.lon,
-        },
-        weatherData: null,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Unknown error'),
-      };
-    }
-  };
-
-  // Fetch weather data for all favorites
-  useEffect(() => {
-    const fetchAllFavoriteWeather = async () => {
-      if (favorites.length === 0) {
-        setIsLoading(false);
-        return;
+        if (favoriteWeatherData[index]) {
+          const { lat, lon } = favoriteWeatherData[index].location;
+          fetchByCoordinates(lat, lon);
+          // Update URL to reflect the selected location
+          const locationParam = `${lat},${lon}`;
+          router.push(`/?location=${encodeURIComponent(locationParam)}`);
+        }
       }
+    },
+    [selectedIndex, favoriteWeatherData, fetchByCoordinates, router]
+  );
 
-      setIsLoading(true);
-
-      // Create loading placeholder cards first
-      const loadingCards = favorites.map(favorite => ({
-        location: {
-          name: favorite.name,
-          country: favorite.country,
-          lat: favorite.lat,
-          lon: favorite.lon,
-        },
-        weatherData: null,
-        isLoading: true,
-        error: null,
-      }));
-
-      setFavoriteWeatherData(loadingCards);
-
-      // Now fetch actual data for each location
-      const weatherDataPromises = favorites.map(fetchFavoriteWeather);
-      const weatherData = await Promise.all(weatherDataPromises);
-
-      setFavoriteWeatherData(weatherData);
-      setIsLoading(false);
-    };
-
-    fetchAllFavoriteWeather();
-  }, [favorites]);
-
-  // Handle selecting a favorite location
-  const handleSelectFavorite = (index: number) => {
-    if (selectedIndex === index) {
-      // If already selected, deselect it
-      setSelectedIndex(null);
-    } else {
-      // Otherwise select it and update the current weather
-      setSelectedIndex(index);
-
-      if (favoriteWeatherData[index]) {
-        const { lat, lon } = favoriteWeatherData[index].location;
-        fetchByCoordinates(lat, lon);
-        // Update URL to reflect the selected location
-        const locationParam = `${lat},${lon}`;
-        router.push(`/?location=${encodeURIComponent(locationParam)}`);
-      }
-    }
-  };
-
-  // Handle scrolling for mobile
-  const scrollCarousel = (direction: 'left' | 'right') => {
+  // Memoize the scroll handler to prevent unnecessary function creation
+  const scrollCarousel = useCallback((direction: 'left' | 'right') => {
     if (!carouselRef.current) return;
 
     const scrollAmount = direction === 'left' ? -260 : 260;
     carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-  };
+  }, []);
 
   // Show loading state if we're still loading favorites
   if (favoritesLoading) {
@@ -206,4 +143,9 @@ export function FavoritesCarousel() {
       </div>
     </div>
   );
-}
+});
+
+// Add display name for better debugging
+FavoritesCarousel.displayName = 'FavoritesCarousel';
+
+export { FavoritesCarousel };

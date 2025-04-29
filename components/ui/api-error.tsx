@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { CloudOff, RefreshCcw, WifiOff, AlertTriangle, ServerCrash } from 'lucide-react';
 
@@ -20,23 +20,16 @@ interface ApiErrorProps {
   className?: string;
 }
 
-const getErrorType = (error: Error | null | undefined, statusCode?: number): ErrorType => {
-  if (
-    !navigator.onLine ||
-    error?.message?.includes('fetch') ||
-    error?.message?.includes('network')
-  ) {
-    return 'network';
-  }
-
+// Moved the network check to inside the component
+// Keep function for other error type determination
+const getErrorTypeFromStatus = (statusCode?: number): ErrorType | null => {
   if (statusCode) {
     if (statusCode === 404) return 'not-found';
     if (statusCode === 401) return 'unauthorized';
     if (statusCode === 403) return 'forbidden';
     if (statusCode >= 500) return 'server';
   }
-
-  return 'generic';
+  return null;
 };
 
 const ApiError: React.FC<ApiErrorProps> = ({
@@ -46,7 +39,26 @@ const ApiError: React.FC<ApiErrorProps> = ({
   retry,
   className = '',
 }) => {
-  const errorType = getErrorType(error, statusCode);
+  // Determine error type within the component to handle browser APIs safely
+  const errorType = useMemo(() => {
+    // First check for offline status (only in browser)
+    if (typeof window !== 'undefined' && !window.navigator.onLine) {
+      return 'network';
+    }
+
+    // Check for network errors in the error message
+    if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+      return 'network';
+    }
+
+    // Check for status code based errors
+    const statusCodeType = getErrorTypeFromStatus(statusCode);
+    if (statusCodeType) {
+      return statusCodeType;
+    }
+
+    return 'generic';
+  }, [error, statusCode]);
 
   // Set default messages based on error type
   let title = 'Something went wrong';

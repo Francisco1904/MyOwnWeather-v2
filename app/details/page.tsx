@@ -1,21 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Umbrella, Cloud, CloudSun, Droplets, Wind } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useWeather } from '@/hooks/useWeather';
 import { Skeleton } from '@/components/ui/skeleton';
 import ForecastCard from '@/components/weather/ForecastCard';
 import { formatDate } from '@/lib/utils';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { FavoriteStar } from '@/components/weather/FavoriteStar';
 import { useSearchParams } from 'next/navigation';
+import { useWeatherData } from '@/hooks/useWeatherQueries';
+import { ForecastDay } from '@/lib/services/weatherApi';
 
 // Custom icon component to match the style in the screenshot
-function WeatherIcon({
+const WeatherIcon = memo(function WeatherIcon({
   icon,
   className = '',
   size = 24,
@@ -32,57 +33,77 @@ function WeatherIcon({
       {icon}
     </div>
   );
-}
+});
 
-// Add this interface to match the one in WeatherCard.tsx
-interface HourlyForecast {
-  time: string;
-  temp_c: number;
-  temp_f: number;
-  condition: {
-    text: string;
-    icon: string;
-  };
-  chance_of_rain: number;
-}
-
-export default function DetailedForecast() {
+const DetailedForecast = memo(function DetailedForecast() {
+  // State hooks
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+
+  // Context hooks
   const { theme } = useTheme();
   const { unit, isReady } = useTemperature();
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location');
 
-  const { currentWeather, forecast, isLoading, error, refetch } = useWeather(
+  // Use React Query hook instead of direct API call
+  const { currentWeather, forecast, isLoading, isError, error, refetch } = useWeatherData(
     locationParam || undefined
   );
 
-  // Helper function to get temperature in the selected unit
-  const getTemp = (celsius: number, fahrenheit: number) => {
-    return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
-  };
+  // Helper function to get temperature in the selected unit - using useCallback
+  const getTemp = useCallback(
+    (celsius: number, fahrenheit: number) => {
+      return unit === 'C' ? Math.round(celsius) : Math.round(fahrenheit);
+    },
+    [unit]
+  );
 
-  const toggleDayExpansion = (index: number) => {
-    if (expandedDay === index) {
-      setExpandedDay(null);
-    } else {
-      setExpandedDay(index);
+  const toggleDayExpansion = useCallback((index: number) => {
+    setExpandedDay(prevIndex => (prevIndex === index ? null : index));
+  }, []);
+
+  // Memoize the filtered hourly data to prevent recalculation on renders - moved before conditionals
+  const displayHourly = useMemo(() => {
+    if (!forecast?.forecast?.forecastday?.[0]?.hour) return [];
+
+    const hourlyData = forecast.forecast.forecastday[0].hour;
+    // Get the current hour to filter hourly data
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Filter hourly forecast to show from current hour onwards
+    const filteredHourly = hourlyData.filter(hour => {
+      const hourTime = new Date(hour.time);
+      return hourTime.getHours() >= currentHour;
+    });
+
+    // If we have less than 8 hours left today, add some from tomorrow
+    let result = filteredHourly;
+    if (filteredHourly.length < 8 && forecast.forecast.forecastday.length > 1) {
+      const tomorrowHours = forecast.forecast.forecastday[1].hour.slice(
+        0,
+        8 - filteredHourly.length
+      );
+      result = [...filteredHourly, ...tomorrowHours];
     }
-  };
 
+    // Ensure we only show 12 hours max
+    return result.slice(0, 12);
+  }, [forecast?.forecast?.forecastday]);
+
+  // Now all hooks are called, we can use conditional returns
   if (isLoading) {
     return (
       <>
         <header className="section-header">
           <div className="flex items-center">
-            <Link href="/">
+            <Link href="/" aria-label="Go back to home">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
-                aria-label="Go back to home"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </motion.div>
             </Link>
             <motion.h1
@@ -115,19 +136,18 @@ export default function DetailedForecast() {
     );
   }
 
-  if (error || !forecast) {
+  if (isError || !forecast) {
     return (
       <>
         <header className="section-header">
           <div className="flex items-center">
-            <Link href="/">
+            <Link href="/" aria-label="Go back to home">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
-                aria-label="Go back to home"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
               </motion.div>
             </Link>
             <motion.h1
@@ -155,43 +175,21 @@ export default function DetailedForecast() {
     );
   }
 
-  // Extract data from the API response
+  // Extract data from the API response only after confirming forecast exists
   const { location, current } = currentWeather!;
   const { forecastday } = forecast.forecast;
-  const hourlyData = forecastday[0].hour;
-
-  // Get the current hour to filter hourly data
-  const now = new Date();
-  const currentHour = now.getHours();
-
-  // Filter hourly forecast to show from current hour onwards (or all if we're near end of day)
-  const filteredHourly = hourlyData.filter(hour => {
-    const hourTime = new Date(hour.time);
-    return hourTime.getHours() >= currentHour;
-  });
-
-  // If we have less than 8 hours left today, add some from tomorrow
-  let displayHourly = filteredHourly;
-  if (filteredHourly.length < 8 && forecastday.length > 1) {
-    const tomorrowHours = forecastday[1].hour.slice(0, 8 - filteredHourly.length);
-    displayHourly = [...filteredHourly, ...tomorrowHours];
-  }
-
-  // Ensure we only show 12 hours max
-  displayHourly = displayHourly.slice(0, 12);
 
   return (
     <>
       <header className="section-header">
         <div className="flex items-center">
-          <Link href="/">
+          <Link href="/" aria-label="Go back to home">
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="mr-3 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
-              aria-label="Go back to home"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </motion.div>
           </Link>
           <motion.h1
@@ -245,6 +243,8 @@ export default function DetailedForecast() {
               {displayHourly.map((hour, index) => {
                 const hourTime = new Date(hour.time);
                 const displayTime = index === 0 ? 'Now' : hourTime.getHours() + ':00';
+                // Use proper type assertion to access the properties safely
+                const hourData = hour as ForecastDay['hour'][0];
 
                 return (
                   <motion.div
@@ -257,22 +257,22 @@ export default function DetailedForecast() {
                     <span className="text-xs">{displayTime}</span>
                     {/* Use custom weather icon based on condition */}
                     <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-                      {hour.condition.text.toLowerCase().includes('rain') ? (
+                      {hourData.condition.text.toLowerCase().includes('rain') ? (
                         <Umbrella className="h-4 w-4 text-white" />
-                      ) : hour.condition.text.toLowerCase().includes('cloud') ? (
+                      ) : hourData.condition.text.toLowerCase().includes('cloud') ? (
                         <Cloud className="h-4 w-4 text-white" />
                       ) : (
                         <CloudSun className="h-4 w-4 text-white" />
                       )}
                     </div>
                     <span className="font-medium">
-                      {getTemp(hour.temp_c, hour.temp_f)}°{isReady ? unit : ''}
+                      {getTemp(hourData.temp_c, hourData.temp_f)}°{isReady ? unit : ''}
                     </span>
                     <div className="mt-1 flex items-center">
                       <div className="mr-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
                         <Umbrella className="h-2 w-2 text-white" />
                       </div>
-                      <span className="text-xs">{hour.chance_of_rain}%</span>
+                      <span className="text-xs">{hourData.chance_of_rain}%</span>
                     </div>
                   </motion.div>
                 );
@@ -301,10 +301,16 @@ export default function DetailedForecast() {
               unit={unit}
               isExpanded={expandedDay === index}
               onToggle={() => toggleDayExpansion(index)}
+              index={index}
             />
           ))}
         </div>
       </motion.div>
     </>
   );
-}
+});
+
+DetailedForecast.displayName = 'DetailedForecast';
+WeatherIcon.displayName = 'WeatherIcon';
+
+export default DetailedForecast;

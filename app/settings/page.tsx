@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -38,9 +38,17 @@ export default function SettingsPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  const isDark = useMemo(() => {
+    if (!mounted) return false;
 
-  const isDark = theme === 'dark';
+    if (theme === 'system' && typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    return theme === 'dark';
+  }, [theme, mounted]);
+
+  if (!mounted) return null;
 
   const handleLogout = async () => {
     await logout();
@@ -105,7 +113,7 @@ export default function SettingsPage() {
                 <p className="text-sm opacity-80">Switch between light and dark themes</p>
               </div>
               <div className="flex items-center space-x-2">
-                <Sun className="h-4 w-4 text-yellow-300 dark:text-yellow-200" />
+                <Sun className="h-4 w-4 text-yellow-300 dark:text-yellow-200" aria-hidden="true" />
                 <Switch
                   checked={isDark}
                   onCheckedChange={checked => setTheme(checked ? 'dark' : 'light')}
@@ -113,7 +121,7 @@ export default function SettingsPage() {
                   ariaLabel="Toggle dark mode"
                   isThemeToggle={true}
                 />
-                <Moon className="h-4 w-4" />
+                <Moon className="h-4 w-4" aria-hidden="true" />
               </div>
             </div>
 
