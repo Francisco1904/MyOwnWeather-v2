@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+/// <reference types="cypress-axe" />
 
 // ***********************************************
 // This example commands.ts shows you how to
@@ -13,9 +14,6 @@
 // Add accessibility testing with axe-core
 import 'cypress-axe';
 
-// Adds accessibility checking commands
-Cypress.Commands.add('checkA11y', (context, options) => {
-  cy.checkA11y(context, options);
-});
+// The types are already defined in cypress-axe reference
 
 export {};

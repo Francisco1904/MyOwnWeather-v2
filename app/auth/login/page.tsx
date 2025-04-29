@@ -95,20 +95,25 @@ export default function LoginPage() {
               className="mb-6 flex items-start rounded-lg border border-red-500/30 bg-red-500/20 p-3"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
+              role="alert"
+              aria-live="assertive"
             >
-              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" />
+              <AlertCircle className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
               <p>{error}</p>
             </motion.div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6" noValidate>
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium">
                 Email
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <Mail className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="email"
@@ -118,6 +123,9 @@ export default function LoginPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-3 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="your.email@example.com"
+                  aria-required="true"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
             </div>
@@ -127,8 +135,11 @@ export default function LoginPage() {
                 Password
               </label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-white/70" />
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                  aria-hidden="true"
+                >
+                  <Lock className="h-5 w-5 text-white/70" aria-hidden="true" />
                 </div>
                 <input
                   id="password"
@@ -138,17 +149,27 @@ export default function LoginPage() {
                   required
                   className="w-full rounded-xl border-0 bg-white/10 py-3 pl-10 pr-10 text-white placeholder-white/60 transition-all duration-300 focus:ring-2 focus:ring-white/30 dark:bg-slate-700/20"
                   placeholder="••••••••"
+                  aria-required="true"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
+                    <EyeOff
+                      className="h-5 w-5 text-white/70 transition-colors hover:text-white"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Eye className="h-5 w-5 text-white/70 transition-colors hover:text-white" />
+                    <Eye
+                      className="h-5 w-5 text-white/70 transition-colors hover:text-white"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </div>
@@ -164,11 +185,12 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className="flex w-full items-center justify-center rounded-xl bg-white/20 py-3 font-medium transition-all duration-300 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/50"
+              aria-busy={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Logging in...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+                  <span>Logging in...</span>
                 </>
               ) : (
                 'Log In'

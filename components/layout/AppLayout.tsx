@@ -45,6 +45,8 @@ function BottomNav({ activePage }: BottomNavProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      aria-label="Main navigation"
+      role="navigation"
     >
       <NavItem href="/" icon={<Home />} label="Home" active={activePage === 'home'} />
       <NavItem
@@ -73,7 +75,13 @@ interface NavItemProps {
 
 function NavItem({ href, icon, label, active = false }: NavItemProps) {
   return (
-    <Link href={href} scroll={false}>
+    <Link
+      href={href}
+      scroll={false}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+      className="rounded-md"
+    >
       <motion.div
         className="flex flex-col items-center"
         whileHover={{ scale: 1.1 }}
@@ -83,6 +91,7 @@ function NavItem({ href, icon, label, active = false }: NavItemProps) {
           className={`rounded-full p-2 transition-colors duration-300 ${
             active ? 'bg-white/30 dark:bg-slate-700/40' : 'text-white/70'
           }`}
+          aria-hidden="true"
         >
           {icon}
         </div>

@@ -43,7 +43,7 @@ This project was developed as a solo effort, combining my own design work with A
 - **Smooth Animations**: Enhanced UX with Framer Motion animations
 - **Persistent Storage**: User preferences saved in Firestore
 - **Mobile-First Design**: Perfect experience on phones and tablets
-- **Accessibility Compliant**: Designed for all users with proper contrast and focus states
+- **Accessibility Compliant**: WCAG 2.1 AA compliant with proper keyboard navigation, ARIA attributes, and focus management
 
 ## 📑 Table of Contents
 
@@ -52,9 +52,11 @@ This project was developed as a solo effort, combining my own design work with A
 3. [Tech Stack](#tech-stack)
 4. [Getting Started](#getting-started)
 5. [Project Structure](#project-structure)
-6. [Future Improvements](#future-improvements)
-7. [License](#license)
-8. [Contact Information](#-contact-information)
+6. [Accessibility Features](#accessibility-features)
+7. [PWA & SEO Implementation](#pwa-seo-implementation)
+8. [Future Improvements](#future-improvements)
+9. [License](#license)
+10. [Contact Information](#-contact-information)
 
 ---
 
@@ -65,7 +67,7 @@ This project was developed as a solo effort, combining my own design work with A
 - **Improved Scrollbars**: Custom styled scrollbars that respect theme changes and don't interfere with navigation
 - **Authentication Flow**: Streamlined login, signup, and password reset processes with consistent design
 - **Visual Feedback**: Better loading states, animations, and user interaction responses
-- **Accessibility**: Improved focus states and contrast for better usability
+- **Accessibility**: Improved focus states, contrast, ARIA attributes, and keyboard navigation for better usability
 
 ## Motivation
 
@@ -265,16 +267,113 @@ This project uses a combination of TailwindCSS and shadcn/ui for a consistent, m
 
 ---
 
+## Accessibility Features
+
+This application has been built with accessibility as a core principle, not an afterthought. The following accessibility features have been implemented:
+
+### Keyboard Navigation
+
+- **Full Keyboard Support**: All interactive elements are accessible via keyboard
+- **Focus Management**: Visible focus indicators that respect both light and dark themes
+- **Focus Trapping**: In modal dialogs to prevent keyboard users from accessing background content
+- **Logical Tab Order**: Following the natural reading flow of the page
+
+### Screen Reader Support
+
+- **Semantic HTML**: Proper heading hierarchy and landmark regions
+- **ARIA Attributes**: Including labels, roles, and states for interactive elements
+- **Live Regions**: Implemented for dynamic content like search results
+- **Alternative Text**: For all informative images and icons
+
+### Visual Considerations
+
+- **Color Contrast**: Meeting WCAG AA standard (4.5:1 for normal text, 3:1 for large text)
+- **Text Resizing**: Support for browser text zoom up to 200%
+- **Motion Control**: Animations designed with reduced motion preferences in mind
+- **Visible Focus States**: High-contrast focus indicators that work in both themes
+- **Icon Recognition**: Icons accompanied by text or appropriate ARIA labels
+
+### Testing & Implementation
+
+- **Automated Testing**: Basic accessibility testing with Cypress and axe-core
+- **Keyboard Testing**: Manual verification of keyboard navigation flows
+- **ARIA Implementation**: Strategic use of ARIA attributes for interactive elements
+- **Accessibility Focus**: Ongoing work toward WCAG 2.1 Level AA compliance
+
+### Implementation Examples
+
+- Weather card components use ARIA roles and states to communicate current status
+- Favorite buttons include proper ARIA labels and pressed states
+- Modal dialogs trap focus and announce their purpose to screen readers
+- Form inputs have associated labels and error messaging
+- Interactive elements have appropriate accessible names
+
+These features aim to ensure that users, regardless of ability or assistive technology, can effectively use the weather application.
+
+---
+
+## 🚀 PWA & SEO Implementation
+
+This project implements foundational Progressive Web App (PWA) capabilities and search engine optimization (SEO) best practices to enhance discoverability and user experience.
+
+### Web App Manifest
+
+The application includes a configured Web App Manifest (`app/manifest.ts`) that enables basic PWA installation on supported devices:
+
+```typescript
+// Example from app/manifest.ts
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'MyOwnWeather | Modern Weather App',
+    short_name: 'MyOwnWeather',
+    description: 'A modern weather application with real-time forecasts...',
+    display: 'standalone',
+    // ... additional configuration
+  };
+}
+```
+
+### PWA Features
+
+- **Installable Experience**: Users can add the app to their home screen for quick access
+- **Branded Presence**: Custom icon, theme colors, and splash screen on launch
+- **Mobile Optimization**: Properly configured viewport and orientation settings
+- **App-Like Experience**: Standalone mode removes browser UI for a more immersive experience
+- **Screenshot Previews**: Light and dark mode screenshots showcase the app in installation prompts
+
+### SEO Implementation
+
+The application leverages Next.js metadata API for search engine optimization:
+
+- **Basic Metadata**: Page titles, descriptions, and keywords configured in the root layout
+- **Semantic Structure**: Proper heading hierarchy (`h1`, `h2`, etc.) for content organization
+- **Structured Page Layout**: Semantic HTML with landmarks for better indexing
+- **Responsive Design**: Optimized for various devices to improve search ranking signals
+- **Performance Focus**: Attention to loading performance for better user experience
+
+### Technical Implementation Details
+
+- **Next.js App Router**: Leverages Next.js 14's built-in support for metadata and PWA features
+- **TypeScript Integration**: Strongly typed manifest definition using MetadataRoute types
+- **High-Resolution Assets**: 512x512px icon for crisp display on high-DPI devices
+- **Responsive Design Principles**: Maintains accessibility and usability across all form factors
+
+This implementation demonstrates practical front-end best practices to enhance the app's usability while improving discoverability, with plans for more advanced features in future updates.
+
+---
+
 ## 📈 Future Improvements
 
 - Log-in functionality ✅
 - Multiple location saving ✅
 - Weather alerts and notifications
 - More detailed weather statistics and charts
-- Offline support with PWA capabilities
+- Offline support with service worker for full PWA capabilities
 - Location-based weather alerts
 - Custom user themes
 - Weather widget for embedding
+- Skip links for improved keyboard navigation
+- Advanced dynamic metadata for SEO
 
 ---
 

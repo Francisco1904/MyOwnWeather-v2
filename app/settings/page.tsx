@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -38,9 +38,17 @@ export default function SettingsPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  const isDark = useMemo(() => {
+    if (!mounted) return false;
 
-  const isDark = theme === 'dark';
+    if (theme === 'system' && typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    return theme === 'dark';
+  }, [theme, mounted]);
+
+  if (!mounted) return null;
 
   const handleLogout = async () => {
     await logout();
@@ -105,13 +113,15 @@ export default function SettingsPage() {
                 <p className="text-sm opacity-80">Switch between light and dark themes</p>
               </div>
               <div className="flex items-center space-x-2">
-                <Sun className="h-4 w-4 text-yellow-300 dark:text-yellow-200" />
+                <Sun className="h-4 w-4 text-yellow-300 dark:text-yellow-200" aria-hidden="true" />
                 <Switch
                   checked={isDark}
                   onCheckedChange={checked => setTheme(checked ? 'dark' : 'light')}
                   className="data-[state=checked]:bg-slate-700"
+                  ariaLabel="Toggle dark mode"
+                  isThemeToggle={true}
                 />
-                <Moon className="h-4 w-4" />
+                <Moon className="h-4 w-4" aria-hidden="true" />
               </div>
             </div>
 
@@ -187,7 +197,11 @@ export default function SettingsPage() {
             {isReady && (
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium">°C</span>
-                <Switch checked={unit === 'F'} onCheckedChange={toggleUnit} />
+                <Switch
+                  checked={unit === 'F'}
+                  onCheckedChange={toggleUnit}
+                  ariaLabel="Toggle temperature unit"
+                />
                 <span className="text-sm font-medium">°F</span>
               </div>
             )}
@@ -199,7 +213,7 @@ export default function SettingsPage() {
                 <Label className="text-base font-medium">Notifications</Label>
                 <p className="text-sm opacity-80">Receive weather alerts and updates</p>
               </div>
-              <Switch defaultChecked={false} />
+              <Switch defaultChecked={false} ariaLabel="Toggle notifications" />
             </div>
           </div>
 
@@ -282,13 +296,13 @@ export default function SettingsPage() {
   return (
     <>
       <header className="section-header">
-        <Link href="/">
+        <Link href="/" aria-label="Go back to home">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="mr-4 rounded-full bg-white/20 p-2 backdrop-blur-md dark:bg-slate-800/40"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </motion.div>
         </Link>
         <h1 className="section-title">Settings</h1>
