@@ -102,7 +102,7 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
         {/* Carousel container */}
         <div
           ref={carouselRef}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6"
+          className="scrollable show-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6"
           style={{ scrollbarWidth: 'thin' }}
         >
           {favoriteWeatherData.map((favorite, index) => (
