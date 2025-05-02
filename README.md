@@ -326,7 +326,6 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'MyOwnWeather | Modern Weather App',
     short_name: 'MyOwnWeather',
-    description: 'A modern weather application with real-time forecasts...',
     display: 'standalone',
     // ... additional configuration
   };
@@ -340,6 +339,19 @@ export default function manifest(): MetadataRoute.Manifest {
 - **Mobile Optimization**: Properly configured viewport and orientation settings
 - **App-Like Experience**: Standalone mode removes browser UI for a more immersive experience
 - **Screenshot Previews**: Light and dark mode screenshots showcase the app in installation prompts
+- **Push Notifications**: Weather alerts and forecasts delivered through browser notifications
+- **Service Worker**: Background processing and caching for improved performance
+
+### Weather Notification System
+
+The application includes a comprehensive notification system that allows users to:
+
+- **Enable/Disable Notifications**: Master toggle to control all notification preferences
+- **Customize Categories**: Fine-grained control over which weather events trigger notifications
+- **Temperature Thresholds**: Set custom high and low temperature alert thresholds
+- **Multiple Alert Types**: Daily forecasts, severe weather, precipitation, and UV index warnings
+- **Permission Management**: Seamless browser notification permission handling
+- **Category-Based Filtering**: Only receive the notifications that matter to you
 
 ### SEO Implementation
 
@@ -357,6 +369,8 @@ The application leverages Next.js metadata API for search engine optimization:
 - **TypeScript Integration**: Strongly typed manifest definition using MetadataRoute types
 - **High-Resolution Assets**: 512x512px icon for crisp display on high-DPI devices
 - **Responsive Design Principles**: Maintains accessibility and usability across all form factors
+- **Firebase Integration**: User notification preferences stored in Firestore for persistence
+- **Context API**: React context for managing notification state throughout the application
 
 This implementation demonstrates practical front-end best practices to enhance the app's usability while improving discoverability, with plans for more advanced features in future updates.
 
@@ -366,7 +380,7 @@ This implementation demonstrates practical front-end best practices to enhance t
 
 - Log-in functionality ✅
 - Multiple location saving ✅
-- Weather alerts and notifications
+- Weather alerts and notifications ✅
 - More detailed weather statistics and charts
 - Offline support with service worker for full PWA capabilities
 - Location-based weather alerts
