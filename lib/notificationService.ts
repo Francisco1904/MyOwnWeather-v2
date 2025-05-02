@@ -1,8 +1,8 @@
 // Notification service for processing and sending weather notifications
 
-import { NotificationPreferences } from '@/lib/context/notification-context';
-import { showWeatherNotification } from '@/lib/notifications';
-import { getCurrentWeather, getForecast } from '@/lib/api';
+import { NotificationPreferences } from './context/notification-context';
+import { showWeatherNotification } from './notifications';
+import { getCurrentWeather, getForecast } from './api';
 
 /**
  * Types of notifications that can be sent

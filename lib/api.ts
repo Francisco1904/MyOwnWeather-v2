@@ -1,6 +1,6 @@
 // API utilities for fetching weather data
 
-import { API_KEY } from '@/lib/constants';
+import { API_KEY } from './constants';
 
 // Base URL for weather API
 const API_BASE_URL = 'https://api.weatherapi.com/v1';
