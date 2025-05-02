@@ -282,8 +282,9 @@ This application has been built with accessibility as a core principle, not an a
 
 - **Semantic HTML**: Proper heading hierarchy and landmark regions
 - **ARIA Attributes**: Including labels, roles, and states for interactive elements
-- **Live Regions**: Implemented for dynamic content like search results
+- **Live Regions**: Implemented for dynamic content like search results and notifications
 - **Alternative Text**: For all informative images and icons
+- **Status Communication**: Clear ARIA attributes communicate state changes to assistive technology
 
 ### Visual Considerations
 
@@ -292,6 +293,7 @@ This application has been built with accessibility as a core principle, not an a
 - **Motion Control**: Animations designed with reduced motion preferences in mind
 - **Visible Focus States**: High-contrast focus indicators that work in both themes
 - **Icon Recognition**: Icons accompanied by text or appropriate ARIA labels
+- **Status Indication**: Visual darkening for disabled states with additional ARIA indicators
 
 ### Testing & Implementation
 
@@ -307,6 +309,9 @@ This application has been built with accessibility as a core principle, not an a
 - Modal dialogs trap focus and announce their purpose to screen readers
 - Form inputs have associated labels and error messaging
 - Interactive elements have appropriate accessible names
+- Notification toggles include hidden labels for screen readers
+- Collapsible content properly indicates expanded/collapsed state
+- Form controls feature descriptive helper text with programmatic associations
 
 These features aim to ensure that users, regardless of ability or assistive technology, can effectively use the weather application.
 
@@ -352,6 +357,9 @@ The application includes a comprehensive notification system that allows users t
 - **Multiple Alert Types**: Daily forecasts, severe weather, precipitation, and UV index warnings
 - **Permission Management**: Seamless browser notification permission handling
 - **Category-Based Filtering**: Only receive the notifications that matter to you
+- **Context-Aware UI**: Advanced options dynamically appear only when a category is enabled
+- **Visual State Indication**: Cards visually darken when disabled for clear state representation
+- **Demo Functionality**: Test notifications before enabling them in your browser
 
 ### SEO Implementation
 
@@ -371,6 +379,8 @@ The application leverages Next.js metadata API for search engine optimization:
 - **Responsive Design Principles**: Maintains accessibility and usability across all form factors
 - **Firebase Integration**: User notification preferences stored in Firestore for persistence
 - **Context API**: React context for managing notification state throughout the application
+- **Progressive Disclosure**: Interface complexity adapts to user selections for improved UX
+- **Visual Feedback**: Consistent visual language communicates state changes
 
 This implementation demonstrates practical front-end best practices to enhance the app's usability while improving discoverability, with plans for more advanced features in future updates.
 
@@ -386,8 +396,10 @@ This implementation demonstrates practical front-end best practices to enhance t
 - Location-based weather alerts
 - Custom user themes
 - Weather widget for embedding
-- Skip links for improved keyboard navigation
+- Skip links for improved keyboard navigation ✅
 - Advanced dynamic metadata for SEO
+- Notification scheduling and frequency controls
+- Enhanced notification preview customization
 
 ---
 
