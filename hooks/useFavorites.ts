@@ -51,64 +51,6 @@ export function useFavorites() {
     return now - favoritesCache.timestamp < CACHE_EXPIRY_TIME;
   }, [user]);
 
-  // Setup real-time updates via snapshot
-  const setupRealtimeUpdates = useCallback(() => {
-    if (!isAuthenticated || !user) return;
-
-    // Clear any existing subscriptions
-    if (unsubscribeRef.current) {
-      unsubscribeRef.current();
-    }
-
-    setLoading(true);
-
-    try {
-      const favoritesRef = collection(db, 'favorites');
-      const q = query(favoritesRef, where('userId', '==', user.uid));
-
-      // Subscribe to real-time updates
-      const unsubscribe = onSnapshot(
-        q,
-        querySnapshot => {
-          const favoritesList: FavoriteLocation[] = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            name: doc.data().name,
-            country: doc.data().country,
-            lat: doc.data().lat,
-            lon: doc.data().lon,
-            createdAt: doc.data().createdAt?.toDate() || new Date(),
-          }));
-
-          // Sort by most recently added
-          favoritesList.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-          // Update state and cache
-          setFavorites(favoritesList);
-          favoritesCache = {
-            data: favoritesList,
-            timestamp: Date.now(),
-            userId: user.uid,
-          };
-          setLoading(false);
-        },
-        error => {
-          console.error('Error setting up favorites listener:', error);
-          setLoading(false);
-          toast({
-            title: 'Connection Error',
-            description: 'Problem connecting to favorites service',
-            variant: 'destructive',
-          });
-        }
-      );
-
-      unsubscribeRef.current = unsubscribe;
-    } catch (error) {
-      console.error('Error setting up favorites listener:', error);
-      setLoading(false);
-    }
-  }, [isAuthenticated, user]);
-
   // Fetch user's favorite locations - fallback to non-realtime
   const fetchFavorites = useCallback(
     async (force = false) => {
@@ -161,6 +103,102 @@ export function useFavorites() {
     },
     [isAuthenticated, user, isCacheValid]
   );
+
+  // Setup real-time updates via snapshot with retry logic
+  const setupRealtimeUpdates = useCallback(() => {
+    if (!isAuthenticated || !user) return;
+
+    // Clear any existing subscriptions
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+    }
+
+    setLoading(true);
+
+    // Maximum retry attempts and delay
+    const MAX_RETRIES = 3;
+    let retryCount = 0;
+    const RETRY_DELAY = 2000; // 2 seconds
+
+    const setupListener = () => {
+      try {
+        console.log('Setting up Firestore listener...');
+        const favoritesRef = collection(db, 'favorites');
+        const q = query(favoritesRef, where('userId', '==', user.uid));
+
+        // Subscribe to real-time updates
+        const unsubscribe = onSnapshot(
+          q,
+          querySnapshot => {
+            const favoritesList: FavoriteLocation[] = querySnapshot.docs.map(doc => ({
+              id: doc.id,
+              name: doc.data().name,
+              country: doc.data().country,
+              lat: doc.data().lat,
+              lon: doc.data().lon,
+              createdAt: doc.data().createdAt?.toDate() || new Date(),
+            }));
+
+            // Sort by most recently added
+            favoritesList.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+            // Update state and cache
+            setFavorites(favoritesList);
+            favoritesCache = {
+              data: favoritesList,
+              timestamp: Date.now(),
+              userId: user.uid,
+            };
+            setLoading(false);
+            retryCount = 0; // Reset retry count on success
+          },
+          error => {
+            console.error('Error in Firestore listener:', error);
+
+            // Retry logic for temporary connection issues
+            if (retryCount < MAX_RETRIES) {
+              retryCount++;
+              console.log(`Retrying Firestore connection (${retryCount}/${MAX_RETRIES})...`);
+              setTimeout(setupListener, RETRY_DELAY);
+            } else {
+              setLoading(false);
+              toast({
+                title: 'Connection Error',
+                description:
+                  'Problem connecting to favorites service. Falling back to cached data.',
+                variant: 'destructive',
+              });
+
+              // Fall back to regular fetch if available
+              fetchFavorites(true).catch(fetchError =>
+                console.error('Error in fallback fetch:', fetchError)
+              );
+            }
+          }
+        );
+
+        unsubscribeRef.current = unsubscribe;
+      } catch (error) {
+        console.error('Error setting up favorites listener:', error);
+        setLoading(false);
+
+        // Retry logic for setup errors
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          console.log(`Retrying Firestore setup (${retryCount}/${MAX_RETRIES})...`);
+          setTimeout(setupListener, RETRY_DELAY);
+        } else {
+          toast({
+            title: 'Connection Error',
+            description: 'Unable to connect to favorites service.',
+            variant: 'destructive',
+          });
+        }
+      }
+    };
+
+    setupListener();
+  }, [isAuthenticated, user, fetchFavorites]);
 
   // Add a location to favorites - optimistically update UI
   const addFavorite = useCallback(
