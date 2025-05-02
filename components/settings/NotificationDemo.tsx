@@ -217,9 +217,9 @@ export function NotificationDemo() {
         onClick={handleSendTestNotification}
         disabled={isLoading || !enabled}
         className={cn(
-          'w-full transition-colors',
+          'w-full text-white transition-all duration-300 hover:text-white',
           enabled
-            ? 'bg-white/20 hover:bg-white/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60'
+            ? 'bg-white/10 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40'
             : 'cursor-not-allowed bg-white/10 opacity-70'
         )}
         aria-busy={isLoading}

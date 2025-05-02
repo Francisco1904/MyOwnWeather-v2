@@ -89,16 +89,13 @@ export default function SettingsPage() {
           </p>
           <div className="mt-6">
             <Link href="/auth/login" className="mb-3 block">
-              <Button className="flex w-full items-center justify-center bg-white/20 py-6 text-white hover:bg-white/30 dark:bg-slate-700/50 dark:hover:bg-slate-700/60">
+              <Button className="flex w-full items-center justify-center bg-white/20 py-6 text-white hover:bg-white/30 hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-700/60">
                 <LogIn className="mr-2 h-5 w-5" />
                 Log In
               </Button>
             </Link>
             <Link href="/auth/signup">
-              <Button
-                className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
-                variant="ghost"
-              >
+              <Button className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40">
                 <UserPlus className="mr-2 h-5 w-5" />
                 Create Account
               </Button>
@@ -273,8 +270,7 @@ export default function SettingsPage() {
                   <p className="text-sm opacity-80">Manage your saved locations</p>
                 </div>
                 <Button
-                  className="flex w-full items-center justify-center bg-white/10 py-6 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
-                  variant="ghost"
+                  className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Star className="mr-2 h-5 w-5" />
@@ -312,7 +308,7 @@ export default function SettingsPage() {
 
           <button
             onClick={handleLogout}
-            className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
+            className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium text-white transition-all duration-300 hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
           >
             <LogOut className="mr-2 h-5 w-5" />
             Log Out
