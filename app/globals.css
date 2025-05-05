@@ -2,154 +2,212 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+/* Predefine theme gradients to avoid recalculation on each render */
+:root {
+  /* Base theme variables */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --theme-dark: #0f172a; /* Used for immediate dark theme rendering */
+  --theme-light: #e0f2fe; /* Used for immediate light theme rendering */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+  /* Pre-computed gradient values */
+  --theme-dark-from: #0f172a;
+  --theme-dark-to: #1e293b;
+  --theme-light-from: #e0f2fe;
+  --theme-light-to: #bfdbfe;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+  /* Other theme variables */
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+  --primary: 199.4 100% 40%;
+  --primary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
 
-    --radius: 0.5rem;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
 
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 214, 219, 220;
-    --background-end-rgb: 255, 255, 255;
-    --weather-card-from: #1e88e5; /* Light blue */
-    --weather-card-to: #0d47a1; /* Darker blue */
+  --radius: 0.5rem;
+}
 
-    /* iOS safe area insets - defaults to 0 if not supported */
-    --safe-area-inset-top: env(safe-area-inset-top, 0px);
-    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-area-inset-left: env(safe-area-inset-left, 0px);
-    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+/* Light theme specific variables */
+:root.light {
+  color-scheme: light;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+  --weather-card-from: #1e88e5; /* Light blue */
+  --weather-card-to: #0d47a1; /* Darker blue */
+}
 
-    /* Status bar height for iOS devices */
-    --status-bar-height: 44px;
-  }
+/* Dark theme specific variables */
+:root.dark {
+  color-scheme: dark;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+  --weather-card-from: #5e35b1; /* Purple */
+  --weather-card-to: #311b92; /* Dark purple */
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-    --weather-card-from: #5e35b1; /* Purple */
-    --weather-card-to: #311b92; /* Dark purple */
-  }
+  /* Override base theme colors in dark mode */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 199.4 100% 40%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.5% 48%;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+
+  /* Handle scrollbar for all browsers */
+  html {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+
+    /* Prevent layout shift in modern browsers */
+    scrollbar-gutter: stable;
   }
 
-  /* Global scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* Static background colors for faster initial render */
+  .bg-theme-dark {
+    background-color: var(--bg-theme-dark);
   }
 
-  ::-webkit-scrollbar-track {
+  .bg-theme-light {
+    background-color: var(--bg-theme-light);
+  }
+
+  /* Pre-computed gradients to avoid runtime gradient calculation */
+  .dark-gradient {
+    background: linear-gradient(135deg, var(--theme-dark-from), var(--theme-dark-to));
+  }
+
+  .light-gradient {
+    background: linear-gradient(135deg, var(--theme-light-from), var(--theme-light-to));
+  }
+
+  /* Apply background transitions only after initial load */
+  .loaded body,
+  html.dark body,
+  html.light body {
+    transition: background 500ms ease-in-out;
+  }
+
+  /* WebKit browsers (Chrome, Safari, newer Edge) */
+  body::-webkit-scrollbar {
+    width: 6px; /* Thinner scrollbar */
+  }
+
+  body::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.25);
     border-radius: 10px;
+    border: 1px solid transparent; /* Creates subtle padding effect */
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
-
-  /* For Firefox */
-  * {
+  /* For Firefox - for horizontal scrollable components */
+  .scrollable {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
   }
 
-  /* Add padding to bottom of scrollable containers to prevent overlap with nav bar */
-  .has-bottom-nav {
-    padding-bottom: calc(100px + var(--safe-area-inset-bottom)); /* Reverted from 100px to 70px */
+  /* Horizontal scrollbar styling for WebKit browsers */
+  .scrollbar-styled::-webkit-scrollbar,
+  .scrollable::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+    display: block; /* Ensure scrollbars are always displayed */
   }
 
-  /* Prevent scrollbars from overlapping with nav */
-  .overflow-y-auto,
-  .overflow-auto {
-    /* Adjust scrollbar height to prevent overlap with bottom nav */
-    max-height: calc(100vh - 70px - var(--safe-area-inset-bottom));
+  .scrollbar-styled::-webkit-scrollbar-track,
+  .scrollable::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+  }
+
+  .scrollbar-styled::-webkit-scrollbar-thumb,
+  .scrollable::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+
+  .scrollbar-styled::-webkit-scrollbar-thumb:hover,
+  .scrollable::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Auto-apply scrollable class to overflow-x-auto elements */
+  .overflow-x-auto {
+    @apply scrollable;
+  }
+
+  /* Add padding to bottom of scrollable containers to prevent overlap with nav bar */
+  .has-bottom-nav {
+    padding-bottom: 6rem;
   }
 
   /* iOS-specific adjustments */
   @supports (padding-top: env(safe-area-inset-top)) {
     body {
       /* Add padding for the status bar */
-      padding-top: var(--safe-area-inset-top);
+      padding-top: env(safe-area-inset-top, 0px);
     }
+  }
+
+  /* Safe area utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
   }
 }
 
-/* Custom transitions for smooth theme switching */
-.transition-colors {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Weather card classes */
+/* Custom utility classes */
 .weather-card {
   @apply overflow-hidden rounded-3xl bg-white/20 p-6 text-white shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
 }
@@ -158,83 +216,13 @@
   @apply flex flex-col items-center rounded-xl bg-white/10 p-3 backdrop-blur-sm transition-colors hover:bg-white/15;
 }
 
-/* Custom scrollbar classes for specific components - maintain for backward compatibility */
-/* Custom scrollbar for the favorites list */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* For Firefox */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-}
-
-/* Style for the horizontal scrollbar */
-.scrollbar-styled::-webkit-scrollbar {
-  height: 6px;
-}
-
-.scrollbar-styled::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
-}
-
-.scrollbar-styled::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-}
-
-.scrollbar-styled::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* Carousel styles */
-.snap-x {
-  scroll-snap-type: x mandatory;
-}
-
-.snap-center {
-  scroll-snap-align: center;
-}
-
-.snap-mandatory {
-  --webkit-overflow-scrolling: touch;
-}
-
-/* Add common styling for content cards across the app */
 .content-card {
   @apply overflow-hidden rounded-3xl bg-white/20 shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
 }
 
-/* Base section header styling (without iOS-specific padding) */
 .section-header {
   @apply relative mb-6 flex items-center;
   padding-top: 16px;
-}
-
-/* Only increase padding for iOS devices with notches */
-@supports (padding-top: env(safe-area-inset-top)) {
-  @media screen and (max-device-width: 932px) {
-    .section-header {
-      /* Add MORE padding specifically for iOS devices */
-      padding-top: calc(24px + env(safe-area-inset-top, 0px));
-    }
-  }
 }
 
 .back-button {
@@ -243,4 +231,120 @@
 
 .section-title {
   @apply text-2xl font-bold;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Animation utility classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Add loaded class to delay transitions until after hydration */
+html:not(.loaded) * {
+  transition-property: none !important;
+  animation: none !important;
+}
+
+html.loaded * {
+  /* Only apply transitions after hydration */
+  transition-property:
+    color, background, background-color, border-color, text-decoration-color, fill, stroke, opacity,
+    box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Add animation for initial loading */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Add animation for delayed elements */
+@keyframes slideInUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.3s ease-out forwards;
 }
