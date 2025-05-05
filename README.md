@@ -44,6 +44,7 @@ This project was developed as a solo effort, combining my own design work with A
 - **Persistent Storage**: User preferences saved in Firestore
 - **Mobile-First Design**: Perfect experience on phones and tablets
 - **Accessibility Compliant**: WCAG 2.1 AA compliant with proper keyboard navigation, ARIA attributes, and focus management
+- **Push Notification System**: Customizable alerts for weather conditions
 
 ## 📑 Table of Contents
 
@@ -64,6 +65,10 @@ This project was developed as a solo effort, combining my own design work with A
 
 ## Recent Improvements
 
+- **Comprehensive Testing Suite**: Added extensive test coverage for notification system, accessibility features, and core components
+- **Optimized Navigation**: Refined bottom navigation with improved spacing, visual feedback, and focus states
+- **Enhanced API Integration**: Implemented sophisticated rate limiting with token bucket algorithm to prevent API throttling
+- **Cleaned Codebase**: Removed redundant files and optimized imports for better performance
 - **Enhanced Dark Mode**: Optimized dark theme with appropriate contrast and color schemes for all components
 - **Consistent UI**: Unified styling across all pages including authentication screens
 - **Improved Scrollbars**: Custom styled scrollbars that respect theme changes and don't interfere with navigation
@@ -88,6 +93,7 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 - Dark/light mode theme support
 - Smooth animations with Framer Motion
 - Firebase authentication and data storage
+- Push notification system with customizable alerts for weather conditions
 
 ---
 
