@@ -57,6 +57,7 @@ export function FavoritesModal({ isOpen, onClose }: FavoritesModalProps) {
         className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 p-0 text-white shadow-xl backdrop-blur-lg sm:max-w-md"
         role="dialog"
         aria-modal="true"
+        hasCloseButton={false}
       >
         <DialogHeader className="border-b border-white/10 p-6">
           <div className="flex items-center justify-between">

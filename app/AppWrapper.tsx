@@ -7,14 +7,35 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TemperatureProvider } from '@/lib/context/temperature-context';
 import { AuthProvider } from '@/lib/context/auth-context';
+import { NotificationProvider } from '@/lib/context/notification-context';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { ReactQueryProvider } from '@/lib/providers/query-provider';
 import RateLimitBanner from '@/components/ui/rate-limit-banner';
 import { useToast } from '@/components/ui/use-toast';
+import { registerServiceWorker } from '@/lib/notifications';
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { toast } = useToast();
+
+  // Register service worker for notifications and offline functionality
+  useEffect(() => {
+    const registerSW = async () => {
+      try {
+        const registration = await registerServiceWorker();
+        if (registration) {
+          console.log('Service worker registered for push notifications');
+        }
+      } catch (error) {
+        console.error('Failed to register service worker:', error);
+      }
+    };
+
+    // Only register in production or if explicitly allowed in development
+    if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === 'true') {
+      registerSW();
+    }
+  }, []);
 
   // Add viewport meta tag to handle safe areas on iOS
   useEffect(() => {
@@ -49,16 +70,18 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     <ReactQueryProvider>
       <AuthProvider>
         <TemperatureProvider>
-          <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
-            {/* Rate limit banner displays at the top when needed */}
-            <RateLimitBanner className="mb-4 w-full max-w-md" onRefresh={handleRefresh} />
+          <NotificationProvider>
+            <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+              {/* Rate limit banner displays at the top when needed */}
+              <RateLimitBanner className="mb-4 w-full max-w-md" onRefresh={handleRefresh} />
 
-            <div className="has-bottom-nav w-full max-w-md pt-4">
-              <ErrorBoundary>{children}</ErrorBoundary>
+              <div className="has-bottom-nav w-full max-w-md pt-4">
+                <ErrorBoundary>{children}</ErrorBoundary>
+              </div>
+
+              <BottomNav pathname={pathname} />
             </div>
-
-            <BottomNav pathname={pathname} />
-          </div>
+          </NotificationProvider>
         </TemperatureProvider>
       </AuthProvider>
     </ReactQueryProvider>
@@ -82,7 +105,7 @@ function BottomNav({ pathname }: { pathname: string }) {
       className="pb-safe fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white/20 backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
       style={{
         paddingTop: '1rem',
-        paddingBottom: 'calc(1rem + var(--safe-area-inset-bottom))',
+        paddingBottom: 'calc(1.2rem + var(--safe-area-inset-bottom))',
         paddingLeft: 'max(1rem, var(--safe-area-inset-left))',
         paddingRight: 'max(1rem, var(--safe-area-inset-right))',
       }}
@@ -119,7 +142,7 @@ function NavItem({ href, icon, label, active = false }: NavItemProps) {
   return (
     <Link href={href}>
       <motion.div
-        className="flex flex-col items-center"
+        className="-mt-2 flex flex-col items-center pb-1"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >

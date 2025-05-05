@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   Moon,
@@ -15,6 +15,7 @@ import {
   UserPlus,
   LogIn,
   Star,
+  Bell,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -23,8 +24,11 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { useTemperature } from '@/lib/context/temperature-context';
 import { useAuth } from '@/lib/context/auth-context';
+import { useNotifications } from '@/lib/context/notification-context';
 import { Button } from '@/components/ui/button';
 import { FavoritesModal } from '@/components/favorites/FavoritesModal';
+import { NotificationCategoriesPanel } from '@/components/settings/NotificationCategoriesPanel';
+import { NotificationDemo } from '@/components/settings/NotificationDemo';
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -32,6 +36,8 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { unit, toggleUnit, isReady } = useTemperature();
   const { user, isAuthenticated, logout } = useAuth();
+  const { notificationPreferences, updateMasterToggle, hasPermission, requestPermission } =
+    useNotifications();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,6 +62,16 @@ export default function SettingsPage() {
     router.push('/');
   };
 
+  const handleMasterToggle = async (enabled: boolean) => {
+    // Request permission if enabling notifications and don't have permission yet
+    if (enabled && !hasPermission) {
+      await requestPermission();
+    }
+
+    // Update the master toggle state
+    await updateMasterToggle(enabled);
+  };
+
   // Define the sections as separate components to reorder based on auth status
   const renderSignInSection = (delay = 0.1) => (
     <motion.div
@@ -69,20 +85,18 @@ export default function SettingsPage() {
         <h2 className="mb-6 text-xl font-semibold">Sign In</h2>
         <div className="space-y-6">
           <p className="text-white/80">
-            Sign in to save your preferences and access your weather data across devices.
+            Sign in to save your preferences, get weather alerts, and access your weather data
+            across devices.
           </p>
           <div className="mt-6">
             <Link href="/auth/login" className="mb-3 block">
-              <Button className="flex w-full items-center justify-center bg-white/20 py-6 text-white hover:bg-white/30 dark:bg-slate-700/50 dark:hover:bg-slate-700/60">
+              <Button className="flex w-full items-center justify-center bg-white/20 py-6 text-white hover:bg-white/30 hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-700/60">
                 <LogIn className="mr-2 h-5 w-5" />
                 Log In
               </Button>
             </Link>
             <Link href="/auth/signup">
-              <Button
-                className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
-                variant="ghost"
-              >
+              <Button className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40">
                 <UserPlus className="mr-2 h-5 w-5" />
                 Create Account
               </Button>
@@ -207,15 +221,47 @@ export default function SettingsPage() {
             )}
           </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-medium">Notifications</Label>
-                <p className="text-sm opacity-80">Receive weather alerts and updates</p>
+          {isAuthenticated && (
+            <div className="border-t border-white/10 pt-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                      <Bell className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-base font-medium">Notifications</Label>
+                      <p className="text-sm opacity-80">Receive weather alerts and updates</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={notificationPreferences.masterEnabled}
+                    onCheckedChange={handleMasterToggle}
+                    ariaLabel="Toggle notifications"
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {notificationPreferences.masterEnabled && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="border-t border-white/10 pt-4">
+                        <NotificationCategoriesPanel />
+                        <div className="mt-6">
+                          <NotificationDemo />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <Switch defaultChecked={false} ariaLabel="Toggle notifications" />
             </div>
-          </div>
+          )}
 
           {isAuthenticated && (
             <div className="border-t border-white/10 pt-4">
@@ -225,8 +271,7 @@ export default function SettingsPage() {
                   <p className="text-sm opacity-80">Manage your saved locations</p>
                 </div>
                 <Button
-                  className="flex w-full items-center justify-center bg-white/10 py-6 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
-                  variant="ghost"
+                  className="flex w-full items-center justify-center bg-white/10 py-6 text-white hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Star className="mr-2 h-5 w-5" />
@@ -264,7 +309,7 @@ export default function SettingsPage() {
 
           <button
             onClick={handleLogout}
-            className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium transition-all duration-300 hover:bg-white/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
+            className="flex w-full items-center justify-center rounded-xl bg-white/10 py-3 font-medium text-white transition-all duration-300 hover:bg-white/20 hover:text-white dark:bg-slate-700/30 dark:hover:bg-slate-700/40"
           >
             <LogOut className="mr-2 h-5 w-5" />
             Log Out

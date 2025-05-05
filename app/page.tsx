@@ -1,18 +1,55 @@
 'use client';
 
-import { useState, useEffect, memo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, memo, Suspense, lazy } from 'react';
 import { RefreshCcw, MapPin } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
-import { ForecastData, CurrentWeather } from '@/lib/services/weatherApi';
-import { FavoritesCarousel } from '@/components/weather/FavoritesCarousel';
 import { useAuth } from '@/lib/context/auth-context';
 import { WeatherCard } from '@/components/weather/WeatherCard';
 import { useWeatherData } from '@/hooks/useWeatherQueries';
 import { toast } from '@/hooks/use-toast';
+
+// Lazy load components that aren't needed immediately
+const FavoritesCarousel = lazy(() =>
+  import('@/components/weather/FavoritesCarousel').then(mod => ({ default: mod.FavoritesCarousel }))
+);
+
+// Optimized title component
+const PageTitle = memo(function PageTitle() {
+  return <h1 className="section-title animate-fade-in w-full text-center">Weather</h1>;
+});
+
+// Navigation button component to reduce re-renders
+const NavButton = memo(function NavButton({
+  icon,
+  onClick,
+  disabled,
+  ariaLabel,
+  title,
+}: {
+  icon: React.ReactNode;
+  onClick: () => void;
+  disabled: boolean;
+  ariaLabel: string;
+  title?: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      disabled={disabled}
+      className="back-button"
+      aria-label={ariaLabel}
+      title={title}
+    >
+      {icon}
+      <span className="sr-only">{ariaLabel}</span>
+    </Button>
+  );
+});
 
 export default function HomePage() {
   const { theme } = useTheme();
@@ -65,51 +102,31 @@ export default function HomePage() {
   return (
     <>
       <header className="section-header">
-        <motion.h1
-          className="section-title w-full text-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Weather
-        </motion.h1>
+        <PageTitle />
         <div className="flex-1"></div>
         <div className="absolute right-0 flex space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
+          <NavButton
+            icon={<MapPin className="h-5 w-5" aria-hidden="true" />}
             onClick={refreshUserLocation}
             disabled={isLoading}
-            className="back-button"
-            aria-label="Get my location"
+            ariaLabel="Get my location"
             title="Get my location"
-          >
-            <MapPin className="h-5 w-5" aria-hidden="true" />
-            <span className="sr-only">Get my location</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
+          />
+          <NavButton
+            icon={
+              <RefreshCcw
+                className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
+                aria-hidden="true"
+              />
+            }
             onClick={() => refetch()}
             disabled={isLoading}
-            className="back-button"
-            aria-label="Refresh weather data"
-          >
-            <RefreshCcw
-              className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
-              aria-hidden="true"
-            />
-            <span className="sr-only">Refresh</span>
-          </Button>
+            ariaLabel="Refresh weather data"
+          />
         </div>
       </header>
 
-      <motion.div
-        className="w-full space-y-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
+      <div className="animate-fade-in w-full space-y-6">
         {/* Weather Card */}
         <WeatherCard
           weatherData={currentWeather || null}
@@ -119,36 +136,30 @@ export default function HomePage() {
         />
 
         {currentWeather && forecast && !isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
+          <div className="animate-fade-in delay-300">
             <Link
               href={`/details?location=${locationParam ? encodeURIComponent(locationParam) : ''}`}
             >
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full overflow-hidden rounded-xl bg-white/20 py-4 font-medium shadow-sm backdrop-blur-md transition-all duration-300 hover:bg-white/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+              <button
+                className="w-full overflow-hidden rounded-xl bg-white/20 py-4 font-medium shadow-sm backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-white/30 active:scale-[0.98] dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
                 aria-label="View detailed forecast"
               >
                 View Detailed Forecast
-              </motion.button>
+              </button>
             </Link>
-          </motion.div>
+          </div>
         )}
 
         {isAuthenticated && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <FavoritesCarousel />
-          </motion.div>
+          <div className="animate-fade-in delay-400">
+            <Suspense
+              fallback={<div className="h-32 w-full animate-pulse rounded-xl bg-white/10"></div>}
+            >
+              <FavoritesCarousel />
+            </Suspense>
+          </div>
         )}
-      </motion.div>
+      </div>
     </>
   );
 }
