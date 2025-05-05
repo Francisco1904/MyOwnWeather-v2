@@ -105,7 +105,7 @@ function BottomNav({ pathname }: { pathname: string }) {
       className="pb-safe fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white/20 backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
       style={{
         paddingTop: '1rem',
-        paddingBottom: 'calc(1rem + var(--safe-area-inset-bottom))',
+        paddingBottom: 'calc(1.2rem + var(--safe-area-inset-bottom))',
         paddingLeft: 'max(1rem, var(--safe-area-inset-left))',
         paddingRight: 'max(1rem, var(--safe-area-inset-right))',
       }}
@@ -142,7 +142,7 @@ function NavItem({ href, icon, label, active = false }: NavItemProps) {
   return (
     <Link href={href}>
       <motion.div
-        className="flex flex-col items-center"
+        className="-mt-2 flex flex-col items-center pb-1"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >

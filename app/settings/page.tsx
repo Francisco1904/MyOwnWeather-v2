@@ -85,7 +85,8 @@ export default function SettingsPage() {
         <h2 className="mb-6 text-xl font-semibold">Sign In</h2>
         <div className="space-y-6">
           <p className="text-white/80">
-            Sign in to save your preferences and access your weather data across devices.
+            Sign in to save your preferences, get weather alerts, and access your weather data
+            across devices.
           </p>
           <div className="mt-6">
             <Link href="/auth/login" className="mb-3 block">
