@@ -1,6 +1,6 @@
 # MyOwnWeather v2 🌤️
 
-![Status](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow)
+![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)
 ![Version](https://img.shields.io/badge/version-2.0-blue)
 ![Built with](https://img.shields.io/badge/built%20with-Next.js-black)
 
@@ -12,15 +12,15 @@
 
 ### Light Mode
 
-![Weather App Light Theme](screenshots_preview/mockup_light.png)
+![Weather App Light Theme](/public/screenshots_preview/mockup_light.png)
 
 ### Dark Mode
 
-![Weather App Home Dark Theme](screenshots_preview/mockup_dark.png)
+![Weather App Home Dark Theme](/public/screenshots_preview/mockup_dark.png)
 
 ## 🚀 Live Demo
 
-[Coming Soon] - Experience the app in action!
+[My Own Weather App](https://my-own-weather-v2.vercel.app/)
 
 ## 🏗️ Project Role
 
@@ -188,7 +188,7 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
    - Set build command: `npm run build` (default)
    - Set output directory: `.next` (default)
    - Configure any domain settings if you have a custom domain
-5. Your app will be live at `https://your-project-name.vercel.app`
+5. Your app will be live at `https://my-own-weather-v2.vercel.app`
 
 ### Environment Variables for Production
 
@@ -259,6 +259,7 @@ weather-app/
 │   ├── favicon.png       # App icon
 │   ├── robots.txt        # SEO configuration
 │   ├── service-worker.js # PWA service worker
+│   ├── screenshots_preview/ # Preview screenshots
 │   └── sw.js             # Generated service worker
 ├── __tests__/            # Test files
 │   ├── accessibility/    # Accessibility tests
@@ -266,7 +267,6 @@ weather-app/
 │   └── lib/              # Utility and service tests
 ├── cypress/              # E2E testing
 ├── docs/                 # Documentation files
-├── screenshots_preview/  # Preview screenshots
 ├── styles/               # Global styles
 ├── types/                # TypeScript type definitions
 ├── .env.example          # Example environment variables

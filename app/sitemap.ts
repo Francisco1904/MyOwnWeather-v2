@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Base URL for the app (update this when you have your actual domain)
-  const baseUrl = process.env.SITE_URL || 'https://myownweather.vercel.app';
+  const baseUrl = process.env.SITE_URL || 'https://my-own-weather-v2.vercel.app';
 
   // Current date for lastModified
   const currentDate = new Date();
