@@ -217,26 +217,51 @@ The project follows a **component-based architecture** with clear separation of 
 ```
 weather-app/
 ├── app/                  # Next.js App Router
+│   ├── api/              # API routes
+│   │   └── weather/      # Weather API endpoints
 │   ├── auth/             # Authentication pages
 │   │   ├── login/        # Login page
 │   │   ├── signup/       # Signup page
 │   │   └── reset-password/ # Password reset
 │   ├── details/          # Detailed forecast page
+│   ├── favorites/        # User's saved locations
 │   ├── search/           # Location search page
 │   ├── settings/         # User settings
 │   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
+│   ├── page.tsx          # Home page
+│   ├── manifest.ts       # PWA manifest configuration
+│   └── sitemap.ts        # SEO sitemap generation
 ├── components/           # Reusable UI components
+│   ├── favorites/        # Favorites management components
+│   ├── layout/           # Layout components (headers, nav)
+│   ├── settings/         # Settings and preferences UI
 │   ├── ui/               # shadcn/ui components
 │   ├── weather/          # Weather-specific components
 │   └── theme-provider.tsx # Theme provider component
+├── hooks/                # Custom React hooks
 ├── lib/                  # Utility functions and services
 │   ├── context/          # React context providers
+│   ├── providers/        # State providers
 │   ├── services/         # API services
 │   └── utils.ts          # Helper functions
 ├── public/               # Static assets
+│   ├── favicon.png       # App icon
+│   ├── robots.txt        # SEO configuration
+│   ├── service-worker.js # PWA service worker
+│   └── sw.js             # Generated service worker
+├── __tests__/            # Test files
+│   ├── accessibility/    # Accessibility tests
+│   ├── components/       # Component tests
+│   └── lib/              # Utility and service tests
+├── cypress/              # E2E testing
+├── docs/                 # Documentation files
 ├── screenshots_preview/  # Preview screenshots
-└── .env.example          # Example environment variables
+├── styles/               # Global styles
+├── types/                # TypeScript type definitions
+├── .env.example          # Example environment variables
+├── vercel.json           # Vercel deployment configuration
+├── next.config.mjs       # Next.js configuration
+└── tsconfig.json         # TypeScript configuration
 ```
 
 ---

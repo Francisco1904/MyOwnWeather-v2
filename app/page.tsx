@@ -51,7 +51,8 @@ const NavButton = memo(function NavButton({
   );
 });
 
-export default function HomePage() {
+// Main content component that uses useSearchParams
+function HomeContent() {
   const { theme } = useTheme();
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location');
@@ -161,5 +162,16 @@ export default function HomePage() {
         )}
       </div>
     </>
+  );
+}
+
+// Wrap the component that uses useSearchParams in a Suspense boundary
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

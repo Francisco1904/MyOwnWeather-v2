@@ -5,6 +5,15 @@ try {
   // ignore error
 }
 
+const withPWA = await import('next-pwa').then(mod =>
+  mod.default({
+    dest: 'public',
+    register: true,
+    skipWaiting: true,
+    disable: process.env.NODE_ENV === 'development',
+  })
+);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -14,12 +23,31 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    domains: ['cdn.weatherapi.com'],
+    unoptimized: false,
   },
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+  },
+  // Optimized for production
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
+  },
+  // Handle service worker and push notifications
+  async rewrites() {
+    return [
+      {
+        source: '/service-worker.js',
+        destination: '/_next/static/service-worker.js',
+      },
+    ];
   },
 };
 
@@ -42,4 +70,4 @@ function mergeConfig(nextConfig, userConfig) {
   }
 }
 
-export default nextConfig;
+export default withPWA(nextConfig);
