@@ -198,6 +198,17 @@ When deploying to Vercel, ensure these environment variables are configured:
 - `NEXT_PUBLIC_FIREBASE_*` - All Firebase configuration variables
 - `NEXT_PUBLIC_DEFAULT_LOCATION` - Default location for initial weather display
 
+### Security Considerations
+
+This portfolio project uses client-side API calls with `NEXT_PUBLIC_` prefixed environment variables for simplicity and demonstration purposes. In a production environment, consider these security best practices:
+
+- **API Keys Protection**: Move API calls to server components or API routes to prevent exposing API keys in client-side code
+- **Environment Variables**: Remove `NEXT_PUBLIC_` prefix from sensitive credentials to ensure they're only available server-side
+- **Rate Limiting**: Implement more robust rate limiting and request validation
+- **Access Control**: Add additional layers of authentication for sensitive operations
+
+The current implementation prioritizes demonstration of frontend capabilities and simplified architecture for portfolio purposes, while acknowledging the security tradeoffs this approach entails.
+
 ---
 
 ## 🏗️ Project Architecture
