@@ -48,3 +48,17 @@ export function handleKeyboardActivation(e: React.KeyboardEvent, callback: () =>
   }
   // Let all other keys (including Tab) pass through with their default behavior
 }
+
+/**
+ * Convert Celsius to Fahrenheit
+ */
+export function celsiusToFahrenheit(celsius: number): number {
+  return Math.round((celsius * 9) / 5 + 32);
+}
+
+/**
+ * Convert Fahrenheit to Celsius
+ */
+export function fahrenheitToCelsius(fahrenheit: number): number {
+  return Math.round(((fahrenheit - 32) * 5) / 9);
+}

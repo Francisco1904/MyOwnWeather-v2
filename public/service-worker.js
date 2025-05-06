@@ -1,121 +1,68 @@
 // Service Worker for MyOwnWeather App
-const CACHE_NAME = 'myownweather-v1';
+const CACHE_NAME = 'myownweather-v3';
 
-// Cache static assets
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/favicon.png',
-];
-
-// Install event
+// Install event - just set up the service worker with minimal caching
 self.addEventListener('install', event => {
-  // Activate worker immediately
+  console.log('[Service Worker] Installing...');
+  
+  // Skip waiting to become active immediately 
   self.skipWaiting();
-
-  // Cache static assets
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
 });
 
-// Activate event
+// Activate event - claim clients immediately
 self.addEventListener('activate', event => {
-  // Clean up old caches
+  console.log('[Service Worker] Activating...');
+  
+  // Claim clients immediately so service worker controls the page
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    clients.claim().then(() => {
+      console.log('[Service Worker] Now controlling all clients');
     })
   );
 });
 
-// Fetch event
+// Fetch event - basic passthrough, no caching
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return the response
-        if (response) {
-          return response;
-        }
-        
-        // Clone the request because it's a one-time use stream
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then(response => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // Clone the response because it's a one-time use stream
-          const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              // Don't cache API calls or certain dynamic content
-              if (!event.request.url.includes('/api/')) {
-                cache.put(event.request, responseToCache);
-              }
-            });
-            
-          return response;
-        });
-      })
-  );
+  // Let the browser handle all requests normally
+  // This is a simplified approach focusing on notifications
 });
 
-// Push notification event
-self.addEventListener('push', event => {
-  if (!event.data) return;
+// Handle direct notification request from the app
+self.addEventListener('message', event => {
+  console.log('[Service Worker] Message received:', event.data);
   
-  try {
-    const data = event.data.json();
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const notifData = event.data.notification;
     
-    const options = {
-      body: data.body || 'Weather update available',
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      data: data.url || '/',
-      vibrate: [200, 100, 200],
-      tag: data.tag || 'weather-notification',
-      actions: data.actions || [],
-      requireInteraction: data.requireInteraction || false,
-    };
+    console.log('[Service Worker] Showing notification:', notifData.title);
     
-    event.waitUntil(
-      self.registration.showNotification(
-        data.title || 'MyOwnWeather Update',
-        options
-      )
-    );
-  } catch (error) {
-    console.error('Error showing notification:', error);
-    
-    // Fallback notification if JSON parsing fails
-    event.waitUntil(
-      self.registration.showNotification('Weather Update', {
-        body: 'New weather information is available.',
-        icon: '/favicon.png',
-      })
-    );
+    self.registration.showNotification(
+      notifData.title || 'MyOwnWeather',
+      {
+        body: notifData.body || 'Weather update',
+        icon: notifData.icon || '/favicon.png',
+        badge: '/favicon.png',
+        data: notifData.data || { url: '/' },
+        vibrate: [200, 100, 200],
+        tag: notifData.tag || 'weather-notification',
+        requireInteraction: notifData.requireInteraction || false,
+      }
+    ).then(() => {
+      console.log('[Service Worker] Notification shown successfully');
+    }).catch(err => {
+      console.error('[Service Worker] Failed to show notification:', err);
+    });
   }
 });
 
 // Notification click event
 self.addEventListener('notificationclick', event => {
+  console.log('[Service Worker] Notification clicked:', event.notification);
+  
   event.notification.close();
+  
+  // Extract the URL to open from the notification data
+  const urlToOpen = event.notification.data?.url || '/';
   
   // Handle notification click
   event.waitUntil(
@@ -123,14 +70,16 @@ self.addEventListener('notificationclick', event => {
       .then(clientList => {
         // If a window is already open, focus it
         for (const client of clientList) {
-          if (client.url === event.notification.data && 'focus' in client) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            console.log('[Service Worker] Focusing existing window');
             return client.focus();
           }
         }
         
         // Otherwise open a new window
         if (clients.openWindow) {
-          return clients.openWindow(event.notification.data || '/');
+          console.log('[Service Worker] Opening new window to', urlToOpen);
+          return clients.openWindow(urlToOpen);
         }
       })
   );

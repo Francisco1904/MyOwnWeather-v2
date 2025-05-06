@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, AlertTriangle, Sun, CloudRain, Thermometer, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { showWeatherNotification } from '@/lib/notifications';
+import { showWeatherNotification, registerServiceWorker } from '@/lib/notifications';
 import { useNotifications } from '@/lib/context/notification-context';
 import {
   Select,
@@ -23,6 +23,50 @@ export function NotificationDemo() {
   const [selectedType, setSelectedType] = useState<NotificationType>(
     NotificationType.DAILY_FORECAST
   );
+  const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
+
+  // Ensure service worker is registered before sending notifications
+  useEffect(() => {
+    const ensureServiceWorker = async () => {
+      try {
+        // Wait for any existing service worker to finish installation
+        if ('serviceWorker' in navigator) {
+          // Check if there's already a controller (active SW)
+          if (navigator.serviceWorker.controller) {
+            console.log('Service worker already controlling the page');
+            setServiceWorkerReady(true);
+            return;
+          }
+
+          // Register the service worker
+          console.log('Registering service worker from component...');
+          const registration = await registerServiceWorker();
+
+          if (registration) {
+            console.log('Service worker registered, waiting for it to activate...');
+
+            // Listen for the controlling service worker to change
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              console.log('Service worker now controlling the page');
+              setServiceWorkerReady(true);
+            });
+
+            // If the service worker is already active, mark as ready
+            if (registration.active) {
+              console.log('Service worker is already active');
+              setServiceWorkerReady(true);
+            }
+          }
+        } else {
+          console.warn('Service workers not supported in this browser');
+        }
+      } catch (error) {
+        console.error('Error registering service worker in notification demo:', error);
+      }
+    };
+
+    ensureServiceWorker();
+  }, []);
 
   // Demo notification content based on notification type
   const demoNotifications = {
@@ -66,27 +110,58 @@ export function NotificationDemo() {
 
   const handleSendTestNotification = async () => {
     setIsLoading(true);
+    console.log('Starting notification test...');
 
     try {
       // If we don't have permission yet, request it
       if (!hasPermission) {
-        await requestPermission();
+        console.log('Requesting notification permission...');
+        const permissionGranted = await requestPermission();
+
+        if (!permissionGranted) {
+          console.log('Permission denied by user');
+          toast({
+            title: 'Permission denied',
+            description: 'You need to allow notifications to see them.',
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+          return;
+        }
+        console.log('Permission granted by user');
       }
 
+      // Make sure service worker is ready (give it a moment if just registered)
+      if (!serviceWorkerReady) {
+        console.log('Waiting for service worker to be ready...');
+
+        // Try to register service worker directly
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          console.log('Service worker is now ready:', registration);
+          setServiceWorkerReady(true);
+        } catch (error) {
+          console.error('Error getting ready service worker:', error);
+          // Continue anyway, we'll try different methods
+        }
+      }
+
+      console.log('Preparing notification data...');
       const notifContent = demoNotifications[selectedType];
 
       // Attempt to show a test notification
+      console.log('Sending notification...');
       showWeatherNotification({
         title: notifContent.title,
         body: notifContent.body,
-        tag: `demo-${selectedType}`,
+        tag: `demo-${selectedType}-${Date.now()}`, // Add timestamp to make it unique
         requireInteraction: selectedType === NotificationType.SEVERE_WEATHER,
-        data: { type: selectedType, demo: true },
+        data: { type: selectedType, demo: true, url: window.location.href },
       });
 
       toast({
         title: 'Test notification sent',
-        description: 'If notifications are enabled in your browser, you should see it now.',
+        description: 'If notifications are enabled, you should see it now.',
         variant: 'default',
       });
     } catch (error) {
@@ -94,8 +169,7 @@ export function NotificationDemo() {
 
       toast({
         title: 'Notification error',
-        description:
-          'Could not send test notification. Make sure notifications are enabled in your browser.',
+        description: 'Could not send test notification. Please check console for details.',
         variant: 'destructive',
       });
     } finally {

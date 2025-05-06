@@ -37,7 +37,7 @@ interface NotificationContextType {
   updateMasterToggle: (enabled: boolean) => Promise<void>;
   updateNotificationCategory: (categoryPath: string, value: any) => Promise<void>;
   hasPermission: boolean;
-  requestPermission: () => Promise<void>;
+  requestPermission: () => Promise<boolean>;
 }
 
 // Create the context
@@ -76,17 +76,19 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   }, [notificationSupported]);
 
   // Request notification permission
-  const requestPermission = async () => {
+  const requestPermission = async (): Promise<boolean> => {
     if (!notificationSupported) {
       console.warn('Notifications not supported in this browser');
-      return;
+      return false;
     }
 
     try {
       const permissionGranted = await requestNotificationPermission();
       setHasPermission(permissionGranted);
+      return permissionGranted;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
+      return false;
     }
   };
 

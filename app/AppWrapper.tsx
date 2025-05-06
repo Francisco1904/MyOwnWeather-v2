@@ -12,7 +12,7 @@ import ErrorBoundary from '@/components/ui/error-boundary';
 import { ReactQueryProvider } from '@/lib/providers/query-provider';
 import RateLimitBanner from '@/components/ui/rate-limit-banner';
 import { useToast } from '@/components/ui/use-toast';
-import { registerServiceWorker } from '@/lib/notifications';
+import { registerServiceWorker, subscribeToPushNotifications } from '@/lib/notifications';
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,18 +22,53 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const registerSW = async () => {
       try {
+        console.log('Initializing service worker...');
+
+        // Check if service worker is already controlling the page
+        if (navigator.serviceWorker.controller) {
+          console.log('Service worker is already active and controlling the page');
+          return;
+        }
+
+        // Register the service worker
+        console.log('Registering service worker...');
         const registration = await registerServiceWorker();
+
         if (registration) {
-          console.log('Service worker registered for push notifications');
+          console.log('Service worker registered successfully');
+
+          // Log current service worker state
+          if (registration.installing) {
+            console.log('Service worker is installing');
+          } else if (registration.waiting) {
+            console.log('Service worker is waiting');
+          } else if (registration.active) {
+            console.log('Service worker is active');
+          }
+
+          // Wait for the service worker to become active if it's still installing
+          if (registration.installing) {
+            registration.installing.addEventListener('statechange', event => {
+              console.log('Service worker state changed:', (event.target as any)?.state);
+            });
+          }
+        } else {
+          console.warn('Failed to register service worker');
         }
       } catch (error) {
-        console.error('Failed to register service worker:', error);
+        console.error('Error during service worker setup:', error);
       }
     };
 
     // Only register in production or if explicitly allowed in development
-    if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === 'true') {
-      registerSW();
+    if (
+      (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === 'true') &&
+      'serviceWorker' in navigator
+    ) {
+      // Wait a bit for the page to load fully before registering SW
+      setTimeout(registerSW, 1000);
+    } else {
+      console.log('Service worker registration skipped (not in production or not enabled)');
     }
   }, []);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, AlertTriangle, Calendar, CloudRain, Thermometer, Sun } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useNotifications, NotificationPreferences } from '@/lib/context/notification-context';
 import { useTemperature } from '@/lib/context/temperature-context';
+import { celsiusToFahrenheit, fahrenheitToCelsius } from '@/lib/utils';
+import { DEFAULT_TEMPERATURE_THRESHOLDS } from '@/lib/constants';
 
 interface NotificationCategoryProps {
   title: string;
@@ -119,6 +121,55 @@ const NotificationCategory = ({
 export function NotificationCategoriesPanel() {
   const { notificationPreferences, updateNotificationCategory } = useNotifications();
   const { unit } = useTemperature();
+  const [highTempInput, setHighTempInput] = useState<string>('');
+  const [lowTempInput, setLowTempInput] = useState<string>('');
+  const [previousUnit, setPreviousUnit] = useState<'C' | 'F'>(unit);
+
+  // Initialize input values when preferences or unit changes
+  useEffect(() => {
+    if (notificationPreferences.categories.temperatureThresholds) {
+      const { highThreshold, lowThreshold } =
+        notificationPreferences.categories.temperatureThresholds;
+
+      // If unit has changed, convert the values
+      if (unit !== previousUnit) {
+        // Convert temperatures when switching units
+        if (unit === 'C' && previousUnit === 'F') {
+          // Convert from F to C
+          const highC = fahrenheitToCelsius(highThreshold);
+          const lowC = fahrenheitToCelsius(lowThreshold);
+
+          // Update both local state and stored preferences
+          setHighTempInput(highC.toString());
+          setLowTempInput(lowC.toString());
+          updateNotificationCategory('categories.temperatureThresholds.highThreshold', highC);
+          updateNotificationCategory('categories.temperatureThresholds.lowThreshold', lowC);
+        } else if (unit === 'F' && previousUnit === 'C') {
+          // Convert from C to F
+          const highF = celsiusToFahrenheit(highThreshold);
+          const lowF = celsiusToFahrenheit(lowThreshold);
+
+          // Update both local state and stored preferences
+          setHighTempInput(highF.toString());
+          setLowTempInput(lowF.toString());
+          updateNotificationCategory('categories.temperatureThresholds.highThreshold', highF);
+          updateNotificationCategory('categories.temperatureThresholds.lowThreshold', lowF);
+        }
+
+        // Update previous unit
+        setPreviousUnit(unit);
+      } else {
+        // No unit change, just update the input fields
+        setHighTempInput(highThreshold.toString());
+        setLowTempInput(lowThreshold.toString());
+      }
+    }
+  }, [
+    notificationPreferences.categories.temperatureThresholds,
+    unit,
+    previousUnit,
+    updateNotificationCategory,
+  ]);
 
   const handleCategoryToggle = (category: string, value: boolean) => {
     updateNotificationCategory(`categories.${category}`, value);
@@ -129,10 +180,20 @@ export function NotificationCategoriesPanel() {
   };
 
   const handleTempThresholdChange = (type: 'high' | 'low', value: string) => {
-    const numValue = parseInt(value, 10);
-    if (isNaN(numValue)) return;
+    // Update the local input state to allow for empty values
+    if (type === 'high') {
+      setHighTempInput(value);
+    } else {
+      setLowTempInput(value);
+    }
 
-    updateNotificationCategory(`categories.temperatureThresholds.${type}Threshold`, numValue);
+    // Only update the stored preferences if it's a valid number
+    if (value !== '') {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue)) {
+        updateNotificationCategory(`categories.temperatureThresholds.${type}Threshold`, numValue);
+      }
+    }
   };
 
   // Extract values from the preferences
@@ -183,10 +244,10 @@ export function NotificationCategoriesPanel() {
               <Input
                 id="high-temp"
                 type="number"
-                value={temperatureThresholds.highThreshold}
+                value={highTempInput}
                 onChange={e => handleTempThresholdChange('high', e.target.value)}
                 className="bg-white/10 text-white placeholder:text-white/50"
-                placeholder={`e.g., ${unit === 'C' ? '32' : '90'}`}
+                placeholder={`e.g., ${DEFAULT_TEMPERATURE_THRESHOLDS[unit].high}`}
                 min={unit === 'C' ? 0 : 32}
                 max={unit === 'C' ? 50 : 120}
                 aria-describedby="high-temp-desc"
@@ -202,10 +263,10 @@ export function NotificationCategoriesPanel() {
               <Input
                 id="low-temp"
                 type="number"
-                value={temperatureThresholds.lowThreshold}
+                value={lowTempInput}
                 onChange={e => handleTempThresholdChange('low', e.target.value)}
                 className="bg-white/10 text-white placeholder:text-white/50"
-                placeholder={`e.g., ${unit === 'C' ? '0' : '32'}`}
+                placeholder={`e.g., ${DEFAULT_TEMPERATURE_THRESHOLDS[unit].low}`}
                 min={unit === 'C' ? -20 : -4}
                 max={unit === 'C' ? 20 : 68}
                 aria-describedby="low-temp-desc"

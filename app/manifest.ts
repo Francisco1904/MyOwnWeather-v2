@@ -30,7 +30,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
       {
         src: '/screenshots_preview/mockup_dark.png',
-        sizes: '1280x720',
+        sizes: '6991x2992',
         type: 'image/png',
         form_factor: 'wide',
       },

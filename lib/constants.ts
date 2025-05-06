@@ -1,9 +1,18 @@
 // Application constants
 
-// API Keys
-// In a real application, these would be stored in environment variables
-// and not committed to the repository
 export const API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY || 'mock_api_key';
+
+// Notification settings default values per temperature unit
+export const DEFAULT_TEMPERATURE_THRESHOLDS = {
+  C: {
+    high: 32, // High threshold in Celsius
+    low: 3, // Low threshold in Celsius
+  },
+  F: {
+    high: 90, // High threshold in Fahrenheit
+    low: 37, // Low threshold in Fahrenheit
+  },
+};
 
 // Notification settings
 export const DEFAULT_NOTIFICATION_SETTINGS = {
@@ -13,8 +22,8 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
     severeWeather: true,
     temperatureThresholds: {
       enabled: false,
-      highThreshold: 95, // Default high temp threshold (F)
-      lowThreshold: 32, // Default low temp threshold (F)
+      highThreshold: DEFAULT_TEMPERATURE_THRESHOLDS.F.high, // Default high temp threshold (F)
+      lowThreshold: DEFAULT_TEMPERATURE_THRESHOLDS.F.low, // Default low temp threshold (F)
     },
     precipitationAlerts: true,
     uvIndexWarnings: true,

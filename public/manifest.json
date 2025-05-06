@@ -1,0 +1,17 @@
+{
+  "name": "MyOwnWeather",
+  "short_name": "Weather",
+  "description": "Your personal weather application",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#4B76E5",
+  "theme_color": "#4B76E5",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+} 
