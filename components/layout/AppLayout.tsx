@@ -23,7 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const activePage = getActivePage();
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 pb-20 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-sky-400 to-purple-500 p-4 pb-24 text-white transition-colors duration-300 dark:from-slate-900 dark:to-purple-900">
       <AnimatePresence mode="wait">
         <div className="w-full max-w-md">{children}</div>
       </AnimatePresence>
@@ -41,7 +41,7 @@ interface BottomNavProps {
 function BottomNav({ activePage }: BottomNavProps) {
   return (
     <motion.nav
-      className="fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white/20 p-4 backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white/20 p-4 backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}

@@ -190,7 +190,7 @@
 
   /* Add padding to bottom of scrollable containers to prevent overlap with nav bar */
   .has-bottom-nav {
-    padding-bottom: 6rem;
+    padding-bottom: 7rem;
   }
 
   /* iOS-specific adjustments */

@@ -103,7 +103,7 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
     <div className="relative mt-6">
       <h2 className="mb-3 text-lg font-medium">Favorites</h2>
 
-      <div className="relative">
+      <div className="relative z-0">
         {/* Left scroll button (only on desktop) */}
         {!isMobile && favorites.length > 1 && (
           <Button
