@@ -212,6 +212,13 @@
   @apply overflow-hidden rounded-3xl bg-white/20 p-6 text-white shadow-lg backdrop-blur-md transition-colors duration-300 dark:bg-slate-800/30;
 }
 
+.selected-card {
+  @apply transform ring-2 ring-white/30 transition-all duration-300 dark:ring-white/20;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
 .weather-card-item {
   @apply flex flex-col items-center rounded-xl bg-white/10 p-3 backdrop-blur-sm transition-colors hover:bg-white/15;
 }

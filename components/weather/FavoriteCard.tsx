@@ -47,12 +47,11 @@ export function FavoriteCard({
   if (isLoading) {
     return (
       <motion.div
-        className="weather-card animate-pulse"
+        className={`weather-card animate-pulse ${isSelected ? 'selected-card' : ''}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{
           opacity: 1,
           scale: 1,
-          x: isSelected ? 0 : 'auto',
           zIndex: isSelected ? 10 : 'auto',
         }}
         whileHover={{ scale: isActive ? 1.02 : 1 }}
@@ -71,9 +70,11 @@ export function FavoriteCard({
         aria-busy="true"
         style={{
           cursor: isActive ? 'pointer' : 'default',
-          width: isSelected ? '100%' : '240px',
+          width: '240px',
           minWidth: '240px',
           opacity: isActive ? 1 : 0.8,
+          transition: 'all 0.3s ease',
+          boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
         }}
       >
         <div className="flex justify-between">
@@ -91,12 +92,11 @@ export function FavoriteCard({
   if (error || !weatherData) {
     return (
       <motion.div
-        className="weather-card text-center"
+        className={`weather-card text-center ${isSelected ? 'selected-card' : ''}`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{
           opacity: 1,
           scale: 1,
-          x: isSelected ? 0 : 'auto',
           zIndex: isSelected ? 10 : 'auto',
         }}
         whileHover={{ scale: isActive ? 1.02 : 1 }}
@@ -114,9 +114,11 @@ export function FavoriteCard({
         aria-label={`Weather unavailable for ${location.name}. ${error?.message || 'Data unavailable'}`}
         style={{
           cursor: isActive ? 'pointer' : 'default',
-          width: isSelected ? '100%' : '240px',
+          width: '240px',
           minWidth: '240px',
           opacity: isActive ? 1 : 0.8,
+          transition: 'all 0.3s ease',
+          boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
         }}
       >
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
@@ -132,12 +134,11 @@ export function FavoriteCard({
 
   return (
     <motion.div
-      className="weather-card"
+      className={`weather-card ${isSelected ? 'selected-card' : ''}`}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{
         opacity: 1,
         scale: 1,
-        x: isSelected ? 0 : 'auto',
         zIndex: isSelected ? 10 : 'auto',
       }}
       whileHover={{ scale: isActive ? 1.02 : 1 }}
@@ -156,9 +157,12 @@ export function FavoriteCard({
       aria-pressed={isSelected}
       style={{
         cursor: isActive ? 'pointer' : 'default',
-        width: isSelected ? '100%' : '240px',
+        width: '240px',
         minWidth: '240px',
         opacity: isActive ? 1 : 0.8,
+        transition: 'all 0.3s ease',
+        // Add a subtle shadow when selected
+        boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
       }}
     >
       <div className="flex items-start justify-between">

@@ -40,23 +40,41 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
   // Memoize the handler for selecting a favorite location
   const handleSelectFavorite = useCallback(
     (index: number) => {
-      if (selectedIndex === index) {
-        // If already selected, deselect it
-        setSelectedIndex(null);
-      } else {
-        // Otherwise select it and update the current weather
-        setSelectedIndex(index);
+      // Always select the clicked card, regardless of the current selection
+      setSelectedIndex(index);
 
-        if (favoriteWeatherData[index]) {
-          const { lat, lon } = favoriteWeatherData[index].location;
-          fetchByCoordinates(lat, lon);
-          // Update URL to reflect the selected location
-          const locationParam = `${lat},${lon}`;
-          router.push(`/?location=${encodeURIComponent(locationParam)}`);
-        }
+      // Update the current weather with the selected location
+      if (favoriteWeatherData[index]) {
+        const { lat, lon } = favoriteWeatherData[index].location;
+        fetchByCoordinates(lat, lon);
+        // Update URL to reflect the selected location
+        const locationParam = `${lat},${lon}`;
+        router.push(`/?location=${encodeURIComponent(locationParam)}`);
+
+        // Scroll the selected card into the center of the view
+        setTimeout(() => {
+          if (carouselRef.current) {
+            const carousel = carouselRef.current;
+            const card = carousel.querySelector(`[data-card-index="${index}"]`) as HTMLElement;
+
+            if (card) {
+              const cardWidth = card.offsetWidth;
+              const carouselWidth = carousel.offsetWidth;
+
+              // Calculate position to center the card
+              const scrollLeft = card.offsetLeft - carouselWidth / 2 + cardWidth / 2;
+
+              // Smooth scroll to the position
+              carousel.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth',
+              });
+            }
+          }
+        }, 50); // Small timeout to ensure DOM is updated
       }
     },
-    [selectedIndex, favoriteWeatherData, fetchByCoordinates, router]
+    [favoriteWeatherData, fetchByCoordinates, router]
   );
 
   // Memoize the scroll handler to prevent unnecessary function creation
@@ -91,7 +109,7 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -left-4 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-white/20 p-1.5 text-white backdrop-blur-md hover:bg-white/30"
+            className="absolute -left-4 top-1/2 z-20 h-8 w-8 -translate-y-1/2 rounded-full bg-white/20 p-1.5 text-white backdrop-blur-md hover:bg-white/30"
             onClick={() => scrollCarousel('left')}
             aria-label="Scroll left"
           >
@@ -102,17 +120,20 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
         {/* Carousel container */}
         <div
           ref={carouselRef}
-          className="scrollable show-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6"
+          className="scrollable show-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-6"
           style={{ scrollbarWidth: 'thin' }}
         >
           {favoriteWeatherData.map((favorite, index) => (
             <div
               key={`${favorite.location.name}-${index}`}
               className="snap-center"
+              data-card-index={index}
               style={{
                 flexShrink: 0,
-                transform: `translateX(${selectedIndex !== null && selectedIndex !== index ? '30px' : '0px'})`,
-                transition: 'transform 0.3s ease',
+                transition: 'all 0.3s ease',
+                // Ensure selected card has a moderate z-index but still below navigation arrows
+                zIndex: selectedIndex === index ? 5 : 1,
+                position: 'relative',
               }}
             >
               <FavoriteCard
@@ -122,7 +143,7 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
                 error={favorite.error}
                 onSelect={() => handleSelectFavorite(index)}
                 isSelected={selectedIndex === index}
-                isActive={selectedIndex === null || selectedIndex === index}
+                isActive={true} // Always active to allow selection
               />
             </div>
           ))}
@@ -133,7 +154,7 @@ const FavoritesCarousel = memo(function FavoritesCarousel() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-4 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-white/20 p-1.5 text-white backdrop-blur-md hover:bg-white/30"
+            className="absolute -right-4 top-1/2 z-20 h-8 w-8 -translate-y-1/2 rounded-full bg-white/20 p-1.5 text-white backdrop-blur-md hover:bg-white/30"
             onClick={() => scrollCarousel('right')}
             aria-label="Scroll right"
           >
