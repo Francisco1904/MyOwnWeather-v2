@@ -40,8 +40,8 @@ self.addEventListener('message', event => {
       notifData.title || 'MyOwnWeather',
       {
         body: notifData.body || 'Weather update',
-        icon: notifData.icon || '/favicon.png',
-        badge: '/favicon.png',
+        icon: notifData.icon || '/favicon.png', // 512x512 image
+        badge: '/favicon.png', // 512x512 image
         data: notifData.data || { url: '/' },
         vibrate: [200, 100, 200],
         tag: notifData.tag || 'weather-notification',

@@ -32,7 +32,13 @@ export const metadata: Metadata = {
     description: 'A modern weather application with real-time forecasts',
   },
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      {
+        url: '/favicon.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
   },
 };
 
