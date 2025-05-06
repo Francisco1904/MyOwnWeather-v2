@@ -90,7 +90,7 @@ const HourlyForecastItem = memo(function HourlyForecastItem({
   }, [hour.condition.text]);
 
   return (
-    <div className="flex flex-col items-center rounded-xl bg-white/10 p-2 backdrop-blur-sm transition-all hover:bg-white/15">
+    <div className="flex min-w-[70px] flex-col items-center rounded-xl bg-white/10 p-2 backdrop-blur-sm transition-all hover:bg-white/15">
       <span className="text-xs">{displayTime}</span>
       {/* Render custom icon instead of API image */}
       <div className="my-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
@@ -179,10 +179,10 @@ export const WeatherCard = memo(function WeatherCard({
 
     // If we don't have enough hours left today, add some from tomorrow
     let result = filteredHourly;
-    if (filteredHourly.length < 4 && forecast.forecast.forecastday.length > 1) {
+    if (filteredHourly.length < 12 && forecast.forecast.forecastday.length > 1) {
       const tomorrowHours = forecast.forecast.forecastday[1].hour.slice(
         0,
-        4 - filteredHourly.length
+        12 - filteredHourly.length
       );
       result = [...filteredHourly, ...tomorrowHours];
       console.log('Added tomorrow hours, total:', result.length);
@@ -199,8 +199,8 @@ export const WeatherCard = memo(function WeatherCard({
       console.log('No hours matched, using nearest hour');
     }
 
-    // Show up to 4 hours
-    return result.slice(0, 4);
+    // Show up to 12 hours
+    return result.slice(0, 12);
   }, [forecast?.forecast?.forecastday]);
 
   // Memoize current temperature to avoid recalculations
@@ -354,17 +354,19 @@ export const WeatherCard = memo(function WeatherCard({
       {displayHourly.length > 0 && (
         <div className="mt-6">
           <p className="mb-2 text-sm">Hourly Forecast</p>
-          <div className="grid grid-cols-4 gap-2">
-            {displayHourly.map((hour: HourlyForecast, index: number) => (
-              <HourlyForecastItem
-                key={index}
-                hour={hour}
-                index={index}
-                getTemp={getTemp}
-                unit={unit}
-                isReady={isReady}
-              />
-            ))}
+          <div className="scrollbar-styled -mx-2 overflow-x-auto px-2 pb-2">
+            <div className="flex min-w-max space-x-2">
+              {displayHourly.map((hour: HourlyForecast, index: number) => (
+                <HourlyForecastItem
+                  key={index}
+                  hour={hour}
+                  index={index}
+                  getTemp={getTemp}
+                  unit={unit}
+                  isReady={isReady}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
