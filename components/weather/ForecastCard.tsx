@@ -1,5 +1,5 @@
-import React, { memo, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { memo, useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
   ChevronDown,
@@ -55,6 +55,15 @@ const ForecastCard = memo(function ForecastCard({
 }: ForecastCardProps) {
   const { isReady } = useTemperature();
   const { date, day: dayData } = day;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number>(0);
+
+  // Measure the content height for smoother animations
+  useEffect(() => {
+    if (contentRef.current && isExpanded) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [isExpanded]);
 
   // Memoize formatted date to prevent recalculation
   const formattedDate = useMemo(
@@ -107,21 +116,51 @@ const ForecastCard = memo(function ForecastCard({
     [dayData.mintemp_c, dayData.mintemp_f, getTemp]
   );
 
+  // Animation variants for smoother transitions
+  const cardVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, delay: 0.05 * index, ease: 'easeOut' },
+    },
+  };
+
+  const contentVariants = {
+    closed: {
+      height: 0,
+      opacity: 0,
+      transition: {
+        height: { duration: 0.25, ease: 'easeInOut' },
+        opacity: { duration: 0.2 },
+      },
+    },
+    open: {
+      height: contentHeight,
+      opacity: 1,
+      transition: {
+        height: { duration: 0.25, ease: 'easeInOut' },
+        opacity: { duration: 0.25, delay: 0.1 },
+      },
+    },
+  };
+
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
       className="w-full overflow-hidden rounded-xl bg-white/10 shadow-md backdrop-blur-md dark:bg-slate-800/20"
     >
-      <div
+      <motion.div
         className="flex cursor-pointer items-center justify-between p-4"
         onClick={onToggle}
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
         onKeyDown={handleKeyDown}
+        whileTap={{ scale: 0.99 }}
+        transition={{ duration: 0.2 }}
       >
         <div className="flex items-center">
           <WeatherIcon icon={weatherIcon} />
@@ -138,72 +177,82 @@ const ForecastCard = memo(function ForecastCard({
               {minTemp}°{isReady ? unit : ''}
             </span>
           </p>
-          <div className="rounded-full bg-white/10 p-1">
-            {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </div>
+          <motion.div
+            className="rounded-full bg-white/10 p-1"
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <ChevronDown className="h-5 w-5" />
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {isExpanded && (
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: 'auto' }}
-          exit={{ height: 0 }}
-          className="border-t border-white/10 px-4 py-3"
-        >
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center">
-              <WeatherIcon icon={<Wind className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">Wind</p>
-                <p className="text-sm font-medium">
-                  {unit === 'C' ? `${dayData.maxwind_kph} km/h` : `${dayData.maxwind_mph} mph`}
-                </p>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            ref={contentRef}
+            variants={contentVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="overflow-hidden border-t border-white/10"
+          >
+            <div className="px-4 py-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center">
+                  <WeatherIcon icon={<Wind className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">Wind</p>
+                    <p className="text-sm font-medium">
+                      {unit === 'C' ? `${dayData.maxwind_kph} km/h` : `${dayData.maxwind_mph} mph`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <WeatherIcon icon={<Droplets className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">Humidity</p>
+                    <p className="text-sm font-medium">{dayData.avghumidity}%</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <WeatherIcon icon={<Sunrise className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">Sunrise</p>
+                    <p className="text-sm font-medium">{day.astro.sunrise}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <WeatherIcon icon={<Sunset className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">Sunset</p>
+                    <p className="text-sm font-medium">{day.astro.sunset}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <WeatherIcon icon={<CloudRain className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">Rain Chance</p>
+                    <p className="text-sm font-medium">{dayData.daily_chance_of_rain}%</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <WeatherIcon icon={<Sun className="h-4 w-4 text-white" />} size={20} />
+                  <div className="ml-2">
+                    <p className="text-xs opacity-70">UV Index</p>
+                    <p className="text-sm font-medium">{dayData.uv}</p>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center">
-              <WeatherIcon icon={<Droplets className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">Humidity</p>
-                <p className="text-sm font-medium">{dayData.avghumidity}%</p>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <WeatherIcon icon={<Sunrise className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">Sunrise</p>
-                <p className="text-sm font-medium">{day.astro.sunrise}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <WeatherIcon icon={<Sunset className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">Sunset</p>
-                <p className="text-sm font-medium">{day.astro.sunset}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <WeatherIcon icon={<CloudRain className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">Rain Chance</p>
-                <p className="text-sm font-medium">{dayData.daily_chance_of_rain}%</p>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <WeatherIcon icon={<Sun className="h-4 w-4 text-white" />} size={20} />
-              <div className="ml-2">
-                <p className="text-xs opacity-70">UV Index</p>
-                <p className="text-sm font-medium">{dayData.uv}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 });
