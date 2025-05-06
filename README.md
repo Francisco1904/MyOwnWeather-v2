@@ -107,6 +107,7 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 - **Framer Motion** for animations
 - **shadcn/ui** components
 - **Lucide React** icons
+- **Radix UI** for accessible and customizable UI components
 - **React Context API** for state management
 
 ### Backend & Services:
@@ -115,11 +116,16 @@ After building the original version of MyOwnWeather (v1) using VSCode, I recogni
 - **Firebase** (Authentication, Firestore)
 - **Google Cloud Platform** for location services
 
-### Development & Deployment:
+### Development & Testing:
+
+- **Cypress** for end-to-end testing
+- **Jest** for unit and integration tests
+- **ESLint & Prettier** for code quality
+- **Git & GitHub** for version control
+
+### Deployment:
 
 - **Vercel** for hosting and analytics
-- **Git & GitHub** for version control
-- **ESLint & Prettier** for code quality
 - **Next.js App Router** for routing and SSR/CSR
 
 ---
